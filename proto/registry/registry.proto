@@ -1,0 +1,39 @@
+syntax = "proto3";
+package registry;
+
+option go_package = "github.com/luizgustavojunqueira/KV-Store-Paxos/registry";
+
+import "google/protobuf/empty.proto";
+
+service Registry {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc ListAll(google.protobuf.Empty) returns (ListResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+}
+
+message RegisterRequest {
+  string name = 1;
+  string address = 2;
+}
+
+message RegisterResponse {
+  bool success = 1;
+}
+
+message ListResponse {
+  repeated ServiceEntry services = 1;
+}
+
+message ServiceEntry {
+  string name = 1;
+  string address = 2;
+}
+
+message HeartbeatRequest {
+  string name = 1;
+  string address = 2;
+}
+
+message HeartbeatResponse {
+  bool success = 1;
+}
