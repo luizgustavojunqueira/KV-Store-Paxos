@@ -52,9 +52,6 @@ func (s *PaxosServer) GetSlotState(slotID int64) *PaxosState {
 }
 
 func (s *PaxosServer) ApplyCommand(cmd *pb.Command) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	switch cmd.Type {
 	case pb.CommandType_SET:
 		log.Printf("[KVStore] Aplicando SET: %s = %s\n", cmd.Key, string(cmd.Value))

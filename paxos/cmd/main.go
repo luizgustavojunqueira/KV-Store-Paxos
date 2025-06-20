@@ -119,6 +119,7 @@ func main() {
 		fmt.Println("  delete <key>                         - Propoe um DELETE no próximo slot livre")
 		fmt.Println("  get <key>                            - Consulta o valor local (do líder)")
 		fmt.Println("  print                                - Mostra todo o KV Store local (do líder)")
+		fmt.Println("  printlog 						  - Mostra o log de comandos propostos (do líder)")
 		fmt.Println("  elect                                - Tenta iniciar uma eleição de líder (se você perdeu a liderança)")
 		fmt.Println("  exit                                 - Sai da CLI e encerra o nó")
 		fmt.Println("---------------------------------")
@@ -191,6 +192,18 @@ func main() {
 			case "elect": // Tenta iniciar uma eleição de líder
 				paxosNode.LeaderElection()
 
+			case "printlog":
+				slots := paxosNode.GetAllSlots()
+				fmt.Println("Log de comandos propostos:")
+				if len(slots) == 0 {
+					fmt.Println("  (Vazio)")
+				} else {
+					for slotID, state := range slots {
+						fmt.Printf("  Slot %d: Promised ID: %d, Accepted ID: %d, Command: %+v\n",
+							slotID, state.HighestPromisedID, state.AcceptedProposedID, state.AcceptedCommand)
+					}
+				}
+
 			case "exit":
 				fmt.Println("Saindo da CLI do líder.")
 				return // Encerra a goroutine principal, permitindo que o programa termine
@@ -204,6 +217,24 @@ func main() {
 		log.Println("[Main] Este nó está configurado como Acceptor/Learner.")
 		// O select{} é necessário para manter a goroutine principal viva enquanto outras goroutines
 		// (como o servidor gRPC, heartbeats do registry e o monitor de líder) estão rodando.
+
+		go func() {
+			ticker := time.NewTicker(10 * time.Second)
+			defer ticker.Stop()
+			for range ticker.C {
+				kvStore := paxosNode.GetKVStore()
+				fmt.Println("Estado atual do KV Store:")
+				if len(kvStore) == 0 {
+					fmt.Println("  (Vazio)")
+				} else {
+					for k, v := range kvStore {
+						fmt.Printf("  %s: %s\n", k, string(v))
+					}
+				}
+			}
+		}()
+
+		// Manter a goroutine principal viva
 		select {}
 	}
 }

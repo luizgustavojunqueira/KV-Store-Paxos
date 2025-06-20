@@ -8,6 +8,7 @@ service Paxos{
   rpc Accept(AcceptRequest) returns (AcceptResponse);
   rpc ProposeLeader(ProposeLeaderRequest) returns (ProposeLeaderResponse);
   rpc SendHeartbeat(LeaderHeartbeat) returns (LeaderHeartbeatResponse);
+  rpc Learn(LearnRequest) returns (LearnResponse);
 }
 
 enum CommandType{
@@ -20,6 +21,7 @@ message Command{
   CommandType type = 1; // tipo do comando
   string key = 2; // chave do valor a ser manipulado
   bytes value = 3; // valor a ser manipulado, se aplicável
+  int64 proposal_id = 4; // número da proposta associada ao comando
 }
 
 message PrepareRequest {
@@ -72,3 +74,13 @@ message LeaderHeartbeatResponse{
   string error_message = 2; // Mensagem de erro, se houver
   int64 known_highest_slot_id = 3; // Slot mais alto que o Acceptor/Learner conhece
 }
+
+message LearnRequest{
+  int64 slot_id = 1; // Número do slot que está sendo aprendido
+}
+
+message LearnResponse{
+  bool decided = 1; // Indica se o slot foi decidido
+  Command command = 2; // Comando associado ao slot, se decidido
+}
+

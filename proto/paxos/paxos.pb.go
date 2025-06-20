@@ -72,9 +72,10 @@ func (CommandType) EnumDescriptor() ([]byte, []int) {
 
 type Command struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Type          CommandType            `protobuf:"varint,1,opt,name=type,proto3,enum=paxos.CommandType" json:"type,omitempty"` // tipo do comando
-	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`                           // chave do valor a ser manipulado
-	Value         []byte                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`                       // valor a ser manipulado, se aplicável
+	Type          CommandType            `protobuf:"varint,1,opt,name=type,proto3,enum=paxos.CommandType" json:"type,omitempty"`        // tipo do comando
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`                                  // chave do valor a ser manipulado
+	Value         []byte                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`                              // valor a ser manipulado, se aplicável
+	ProposalId    int64                  `protobuf:"varint,4,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"` // número da proposta associada ao comando
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -128,6 +129,13 @@ func (x *Command) GetValue() []byte {
 		return x.Value
 	}
 	return nil
+}
+
+func (x *Command) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
 }
 
 type PrepareRequest struct {
@@ -626,15 +634,113 @@ func (x *LeaderHeartbeatResponse) GetKnownHighestSlotId() int64 {
 	return 0
 }
 
+type LearnRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SlotId        int64                  `protobuf:"varint,1,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"` // Número do slot que está sendo aprendido
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LearnRequest) Reset() {
+	*x = LearnRequest{}
+	mi := &file_proto_paxos_paxos_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LearnRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LearnRequest) ProtoMessage() {}
+
+func (x *LearnRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_paxos_paxos_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LearnRequest.ProtoReflect.Descriptor instead.
+func (*LearnRequest) Descriptor() ([]byte, []int) {
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *LearnRequest) GetSlotId() int64 {
+	if x != nil {
+		return x.SlotId
+	}
+	return 0
+}
+
+type LearnResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Decided       bool                   `protobuf:"varint,1,opt,name=decided,proto3" json:"decided,omitempty"` // Indica se o slot foi decidido
+	Command       *Command               `protobuf:"bytes,2,opt,name=command,proto3" json:"command,omitempty"`  // Comando associado ao slot, se decidido
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LearnResponse) Reset() {
+	*x = LearnResponse{}
+	mi := &file_proto_paxos_paxos_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LearnResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LearnResponse) ProtoMessage() {}
+
+func (x *LearnResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_paxos_paxos_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LearnResponse.ProtoReflect.Descriptor instead.
+func (*LearnResponse) Descriptor() ([]byte, []int) {
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *LearnResponse) GetDecided() bool {
+	if x != nil {
+		return x.Decided
+	}
+	return false
+}
+
+func (x *LearnResponse) GetCommand() *Command {
+	if x != nil {
+		return x.Command
+	}
+	return nil
+}
+
 var File_proto_paxos_paxos_proto protoreflect.FileDescriptor
 
 const file_proto_paxos_paxos_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/paxos/paxos.proto\x12\x05paxos\"Y\n" +
+	"\x17proto/paxos/paxos.proto\x12\x05paxos\"z\n" +
 	"\aCommand\x12&\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x12.paxos.CommandTypeR\x04type\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x03 \x01(\fR\x05value\"J\n" +
+	"\x05value\x18\x03 \x01(\fR\x05value\x12\x1f\n" +
+	"\vproposal_id\x18\x04 \x01(\x03R\n" +
+	"proposalId\"J\n" +
 	"\x0ePrepareRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\x03R\n" +
 	"proposalId\x12\x17\n" +
@@ -671,17 +777,23 @@ const file_proto_paxos_paxos_proto_rawDesc = "" +
 	"\x17LeaderHeartbeatResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
 	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\x121\n" +
-	"\x15known_highest_slot_id\x18\x03 \x01(\x03R\x12knownHighestSlotId*/\n" +
+	"\x15known_highest_slot_id\x18\x03 \x01(\x03R\x12knownHighestSlotId\"'\n" +
+	"\fLearnRequest\x12\x17\n" +
+	"\aslot_id\x18\x01 \x01(\x03R\x06slotId\"S\n" +
+	"\rLearnResponse\x12\x18\n" +
+	"\adecided\x18\x01 \x01(\bR\adecided\x12(\n" +
+	"\acommand\x18\x02 \x01(\v2\x0e.paxos.CommandR\acommand*/\n" +
 	"\vCommandType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\a\n" +
 	"\x03SET\x10\x01\x12\n" +
 	"\n" +
-	"\x06DELETE\x10\x022\x8d\x02\n" +
+	"\x06DELETE\x10\x022\xc1\x02\n" +
 	"\x05Paxos\x128\n" +
 	"\aPrepare\x12\x15.paxos.PrepareRequest\x1a\x16.paxos.PrepareResponse\x125\n" +
 	"\x06Accept\x12\x14.paxos.AcceptRequest\x1a\x15.paxos.AcceptResponse\x12J\n" +
 	"\rProposeLeader\x12\x1b.paxos.ProposeLeaderRequest\x1a\x1c.paxos.ProposeLeaderResponse\x12G\n" +
-	"\rSendHeartbeat\x12\x16.paxos.LeaderHeartbeat\x1a\x1e.paxos.LeaderHeartbeatResponseB6Z4github.com/luizgustavojunqueira/KV-Store-Paxos/paxosb\x06proto3"
+	"\rSendHeartbeat\x12\x16.paxos.LeaderHeartbeat\x1a\x1e.paxos.LeaderHeartbeatResponse\x122\n" +
+	"\x05Learn\x12\x13.paxos.LearnRequest\x1a\x14.paxos.LearnResponseB6Z4github.com/luizgustavojunqueira/KV-Store-Paxos/paxosb\x06proto3"
 
 var (
 	file_proto_paxos_paxos_proto_rawDescOnce sync.Once
@@ -696,7 +808,7 @@ func file_proto_paxos_paxos_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_paxos_paxos_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_paxos_paxos_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_paxos_paxos_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_paxos_paxos_proto_goTypes = []any{
 	(CommandType)(0),                // 0: paxos.CommandType
 	(*Command)(nil),                 // 1: paxos.Command
@@ -708,24 +820,29 @@ var file_proto_paxos_paxos_proto_goTypes = []any{
 	(*ProposeLeaderResponse)(nil),   // 7: paxos.ProposeLeaderResponse
 	(*LeaderHeartbeat)(nil),         // 8: paxos.LeaderHeartbeat
 	(*LeaderHeartbeatResponse)(nil), // 9: paxos.LeaderHeartbeatResponse
+	(*LearnRequest)(nil),            // 10: paxos.LearnRequest
+	(*LearnResponse)(nil),           // 11: paxos.LearnResponse
 }
 var file_proto_paxos_paxos_proto_depIdxs = []int32{
-	0, // 0: paxos.Command.type:type_name -> paxos.CommandType
-	1, // 1: paxos.PrepareResponse.accepted_command:type_name -> paxos.Command
-	1, // 2: paxos.AcceptRequest.command:type_name -> paxos.Command
-	2, // 3: paxos.Paxos.Prepare:input_type -> paxos.PrepareRequest
-	4, // 4: paxos.Paxos.Accept:input_type -> paxos.AcceptRequest
-	6, // 5: paxos.Paxos.ProposeLeader:input_type -> paxos.ProposeLeaderRequest
-	8, // 6: paxos.Paxos.SendHeartbeat:input_type -> paxos.LeaderHeartbeat
-	3, // 7: paxos.Paxos.Prepare:output_type -> paxos.PrepareResponse
-	5, // 8: paxos.Paxos.Accept:output_type -> paxos.AcceptResponse
-	7, // 9: paxos.Paxos.ProposeLeader:output_type -> paxos.ProposeLeaderResponse
-	9, // 10: paxos.Paxos.SendHeartbeat:output_type -> paxos.LeaderHeartbeatResponse
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: paxos.Command.type:type_name -> paxos.CommandType
+	1,  // 1: paxos.PrepareResponse.accepted_command:type_name -> paxos.Command
+	1,  // 2: paxos.AcceptRequest.command:type_name -> paxos.Command
+	1,  // 3: paxos.LearnResponse.command:type_name -> paxos.Command
+	2,  // 4: paxos.Paxos.Prepare:input_type -> paxos.PrepareRequest
+	4,  // 5: paxos.Paxos.Accept:input_type -> paxos.AcceptRequest
+	6,  // 6: paxos.Paxos.ProposeLeader:input_type -> paxos.ProposeLeaderRequest
+	8,  // 7: paxos.Paxos.SendHeartbeat:input_type -> paxos.LeaderHeartbeat
+	10, // 8: paxos.Paxos.Learn:input_type -> paxos.LearnRequest
+	3,  // 9: paxos.Paxos.Prepare:output_type -> paxos.PrepareResponse
+	5,  // 10: paxos.Paxos.Accept:output_type -> paxos.AcceptResponse
+	7,  // 11: paxos.Paxos.ProposeLeader:output_type -> paxos.ProposeLeaderResponse
+	9,  // 12: paxos.Paxos.SendHeartbeat:output_type -> paxos.LeaderHeartbeatResponse
+	11, // 13: paxos.Paxos.Learn:output_type -> paxos.LearnResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_paxos_paxos_proto_init() }
@@ -739,7 +856,7 @@ func file_proto_paxos_paxos_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_paxos_paxos_proto_rawDesc), len(file_proto_paxos_paxos_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

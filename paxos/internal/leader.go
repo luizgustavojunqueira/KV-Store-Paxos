@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -146,9 +147,11 @@ func (s *PaxosServer) LeaderElection() {
 	s.mu.Lock()
 	s.isLeader = true
 	s.currentLeader = s.nodeName
-	s.highestSlotID = maxHighestSlotID // O líder aprende o log mais atualizado
-	log.Printf("[LeaderElection] %s foi eleito LÍDER com proposal ID %d! Highest Decided Slot: %d\n", s.nodeName, candidateProposalID, s.highestSlotID)
+	learnedMaxSlot := maxHighestSlotID
+	log.Printf("[LeaderElection] %s foi eleito LÍDER com proposal ID %d! O log mais avançado está em %d. Iniciando sincronização...", s.nodeName, candidateProposalID, learnedMaxSlot)
 	s.mu.Unlock()
+
+	s.SynchronizeLog(learnedMaxSlot) // Sincroniza o log com o líder recém-eleito
 
 	go s.StartLeaderHeartbeats()
 }
@@ -189,7 +192,7 @@ func (s *PaxosServer) StartLeaderHeartbeats() {
 				defer conn.Close()
 				client := pb.NewPaxosClient(conn)
 
-				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second) // Timeout menor para heartbeats
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second) // Timeout menor para heartbeats
 				defer cancel()
 
 				req := &pb.LeaderHeartbeat{
@@ -224,26 +227,52 @@ func (s *PaxosServer) SendHeartbeat(ctx context.Context, req *pb.LeaderHeartbeat
 
 	log.Printf("[Acceptor-Heartbeat] Recebido heartbeat do líder '%s' (PropID: %d, MaxSlot: %d)\n", req.LeaderAddress, req.CurrentProposalId, req.HighestDecidedSlotId)
 
-	// 1. Validar o líder (se o PropID é o maior que já vimos para liderança)
-	if req.CurrentProposalId < s.leaderState.AcceptedProposedID {
+	// Se o heartbeat é de um líder com um ID de proposta *maior* do que eu já aceitei
+	// ou do que eu mesmo propus (se eu era líder ou candidato), eu devo aceitá-lo.
+	// Esta lógica é crucial para a transição de liderança.
+	if req.CurrentProposalId < s.leaderState.HighestPromisedID {
+		errMsg := fmt.Sprintf("Recebido heartbeat com proposal ID %d menor que o já prometido %d", req.CurrentProposalId, s.leaderState.HighestPromisedID)
+		log.Printf("[Acceptor-Heartbeat] %s Rejeitando: %s\n", s.nodeName, errMsg)
 		return &pb.LeaderHeartbeatResponse{
 			Success:            false,
-			ErrorMessage:       fmt.Sprintf("Recebido heartbeat com proposal ID %d menor que o aceito %d", req.CurrentProposalId, s.leaderState.AcceptedProposedID),
+			ErrorMessage:       errMsg,
 			KnownHighestSlotId: s.highestSlotID,
 		}, nil
 	}
 
-	// 2. Aceitar o líder e atualizar estado
-	s.currentLeader = req.LeaderAddress
-	s.lastHeartbeat = time.Now()                   // Reseta o timer de timeout do líder
-	s.isLeader = (s.nodeName == req.LeaderAddress) // Atualiza seu próprio estado de liderança
+	// Se eu sou o líder, só vou abdicr se o proposal ID do outro for maior que o meu.
+	// Se for menor ou igual, é um líder antigo ou inválido.
+	if s.isLeader && req.CurrentProposalId <= s.leaderProposalID {
+		errMsg := fmt.Sprintf("Rejeitando heartbeat de líder com proposta (%d) não superior à minha (%d)", req.CurrentProposalId, s.leaderProposalID)
+		log.Println("[Acceptor-Heartbeat]", errMsg)
+		return &pb.LeaderHeartbeatResponse{Success: false, ErrorMessage: errMsg}, nil
+	}
 
-	// 3. Atualizar highestSlotID local se o líder tem um log mais avançado
+	// Se chegou aqui, é porque o heartbeat é válido e deve ser aceito.
+	s.currentLeader = req.LeaderAddress
+	s.lastHeartbeat = time.Now()                             // Reseta o timer de timeout do líder
+	s.leaderState.HighestPromisedID = req.CurrentProposalId  // Atualiza o maior ID prometido
+	s.leaderState.AcceptedProposedID = req.CurrentProposalId // Atualiza o ID da proposta aceita
+
+	wasLeader := s.isLeader                           // Verifica se era líder antes de atualizar
+	s.isLeader = (s.nodeAddress == req.LeaderAddress) // Atualiza se este nó é o líder
+
+	if wasLeader && !s.isLeader {
+		log.Printf("[Acceptor-Heartbeat] %s Abri mão da liderança para '%s' com Proposta ID %d (minha %d). Meu highestSlotID: %d\n",
+			s.nodeName, req.LeaderAddress, req.CurrentProposalId, s.leaderProposalID, s.highestSlotID)
+	}
+
+	// Sincroniza o log se o líder tem um log mais avançado.
+	// Esta parte é crucial para nós novos ou que voltaram online.
 	if req.HighestDecidedSlotId > s.highestSlotID {
-		log.Printf("[Acceptor-Heartbeat] Líder tem um log mais avançado (%d > %d). Preciso sincronizar!\n", req.HighestDecidedSlotId, s.highestSlotID)
-		// Aqui, um LEARNER real iniciaria um processo de sincronização de log
-		// (pediria os comandos dos slots faltantes ao líder ou outros peers)
-		s.highestSlotID = req.HighestDecidedSlotId // Atualiza provisoriamente
+		log.Printf("[Acceptor-Heartbeat] %s: Líder '%s' tem um log mais avançado (%d > %d). Iniciando sincronização...\n", s.nodeName, req.LeaderAddress, req.HighestDecidedSlotId, s.highestSlotID)
+		// Liberar o lock *antes* de chamar SynchronizeLog para evitar deadlock,
+		// já que SynchronizeLog vai adquirir o lock internamente.
+		s.mu.Unlock()
+		s.SynchronizeLog(req.HighestDecidedSlotId)
+		s.mu.Lock() // Adquirir o lock novamente antes de retornar
+	} else {
+		log.Printf("[Acceptor-Heartbeat] %s: Meu log já está atualizado (%d >= %d). Não preciso sincronizar.\n", s.nodeName, s.highestSlotID, req.HighestDecidedSlotId)
 	}
 
 	return &pb.LeaderHeartbeatResponse{
@@ -283,9 +312,115 @@ func (s *PaxosServer) StartLeaderMonitor() {
 		// Se nunca houve um líder ou se o último heartbeat excedeu o timeout
 		if currentLeader == "" || time.Since(lastHB) > timeout {
 			log.Printf("[LeaderMonitor] Líder '%s' não responde ou não definido. Último heartbeat há %v. Iniciando eleição...\n", currentLeader, time.Since(lastHB))
-			s.LeaderElection() // Tentar se tornar líder
+
+			go func() {
+				// Gera um atraso aleatório para evitar que todos os nós iniciem a eleição ao mesmo tempo
+
+				delay := time.Duration(rand.Intn(201)+50) * time.Millisecond
+
+				log.Printf("[LeaderMonitor] Atrasando eleição de líder por %v para evitar colisões...\n", delay)
+
+				time.Sleep(delay)
+
+				s.mu.RLock()
+				isStillNoLeader := (s.currentLeader == "" || time.Since(s.lastHeartbeat) > s.leaderTimeout)
+				s.mu.RUnlock()
+
+				if isStillNoLeader {
+					log.Printf("[LeaderMonitor] Iniciando eleição de líder após atraso de %v...\n", delay)
+					s.LeaderElection() // Tentar se tornar líder
+				} else {
+					log.Printf("[LeaderMonitor] Líder '%s' voltou ou já foi eleito. Ignorando eleição.\n", s.currentLeader)
+				}
+			}()
 		} else {
-			// log.Printf("[LeaderMonitor] Líder '%s' ativo. Último heartbeat há %v.\n", currentLeader, time.Since(lastHB))
+			log.Printf("[LeaderMonitor] Líder '%s' ativo. Último heartbeat há %v.\n", currentLeader, time.Since(lastHB))
 		}
 	}
+}
+
+func (s *PaxosServer) SynchronizeLog(targetSlotID int64) {
+	s.mu.Lock()
+	startSlot := s.highestSlotID + 1
+	nodeAddress := s.nodeAddress
+	registryClient := s.registryClient
+	s.mu.Unlock()
+
+	if startSlot > targetSlotID {
+		log.Printf("[SyncrhoinzeLog] O slot %d já está atualizado. Nada a sincronizar.\n", targetSlotID)
+		log.Printf("debug: startSlot=%d, targetSlotID=%d, nodeAddress=%s", startSlot, targetSlotID, nodeAddress)
+		return
+	}
+
+	log.Printf("[Sync] Iniciando sincronização do log do slot %d até %d", startSlot, targetSlotID)
+
+	// Pega a lista de outros nós para perguntar
+	registryResp, err := registryClient.ListAll(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		log.Printf("[Sync] Erro ao listar serviços para sincronização: %v", err)
+		return
+
+	}
+
+	log.Printf("[Sync] Encontrados %d serviços registrados para sincronização", len(registryResp.Services))
+
+	for slotToLearn := startSlot; slotToLearn <= targetSlotID; slotToLearn++ {
+		learned := false
+
+		for _, service := range registryResp.Services {
+			if service.Address == nodeAddress {
+				continue
+			}
+
+			conn, err := grpc.NewClient(service.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				log.Printf("[Sync] Não conseguiu conectar a %s: %v", service.Address, err)
+				continue
+			}
+
+			client := pb.NewPaxosClient(conn)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+			resp, err := client.Learn(ctx, &pb.LearnRequest{SlotId: slotToLearn})
+			cancel()     // Cancela o contexto após a chamada
+			conn.Close() // Fecha a conexão após a chamada
+
+			if err == nil && resp.Decided {
+				log.Printf("[Sync] Aprendi o valor para o slot %d do nó %s", slotToLearn, service.Address)
+
+				s.mu.Lock()
+
+				if s.slots == nil {
+					s.slots = make(map[int64]*PaxosState) // Inicializa o mapa de slots se for nil
+				}
+				s.slots[slotToLearn] = &PaxosState{
+					HighestPromisedID:  resp.Command.GetProposalId(),
+					AcceptedProposedID: resp.Command.GetProposalId(),
+					AcceptedCommand:    resp.Command,
+				}
+				s.ApplyCommand(resp.Command)
+				if slotToLearn > s.highestSlotID {
+					s.highestSlotID = slotToLearn // Atualiza o maior slot conhecido
+					log.Printf("[Sync] Nó %s: Atualizado highestSlotID para %d após aprender slot %d\n", s.nodeName, s.highestSlotID, slotToLearn)
+
+				}
+				s.mu.Unlock()
+				learned = true
+				break // Sai do loop interno, vai para o próximo slot
+			} else if err != nil {
+				log.Printf("[Sync] Erro ao tentar aprender slot %d de %s: %v\n", slotToLearn, service.Address, err)
+			} else if !resp.Decided {
+				log.Printf("[Sync] Nó %s não tem valor decidido para slot %d ainda.\n", service.Address, slotToLearn)
+			}
+		}
+
+		if !learned {
+			log.Printf("[Sync] AVISO: Não foi possível aprender o valor para o slot %d de nenhum nó.", slotToLearn)
+			// Aqui você pode decidir parar a sincronização ou tentar novamente.
+			// Parar é mais seguro para evitar um log inconsistente.
+			break
+		}
+	}
+
+	log.Printf("[Sync] Sincronização do log concluída até o slot %d", targetSlotID)
 }

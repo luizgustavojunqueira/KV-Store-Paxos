@@ -23,6 +23,7 @@ const (
 	Paxos_Accept_FullMethodName        = "/paxos.Paxos/Accept"
 	Paxos_ProposeLeader_FullMethodName = "/paxos.Paxos/ProposeLeader"
 	Paxos_SendHeartbeat_FullMethodName = "/paxos.Paxos/SendHeartbeat"
+	Paxos_Learn_FullMethodName         = "/paxos.Paxos/Learn"
 )
 
 // PaxosClient is the client API for Paxos service.
@@ -33,6 +34,7 @@ type PaxosClient interface {
 	Accept(ctx context.Context, in *AcceptRequest, opts ...grpc.CallOption) (*AcceptResponse, error)
 	ProposeLeader(ctx context.Context, in *ProposeLeaderRequest, opts ...grpc.CallOption) (*ProposeLeaderResponse, error)
 	SendHeartbeat(ctx context.Context, in *LeaderHeartbeat, opts ...grpc.CallOption) (*LeaderHeartbeatResponse, error)
+	Learn(ctx context.Context, in *LearnRequest, opts ...grpc.CallOption) (*LearnResponse, error)
 }
 
 type paxosClient struct {
@@ -83,6 +85,16 @@ func (c *paxosClient) SendHeartbeat(ctx context.Context, in *LeaderHeartbeat, op
 	return out, nil
 }
 
+func (c *paxosClient) Learn(ctx context.Context, in *LearnRequest, opts ...grpc.CallOption) (*LearnResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LearnResponse)
+	err := c.cc.Invoke(ctx, Paxos_Learn_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaxosServer is the server API for Paxos service.
 // All implementations must embed UnimplementedPaxosServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type PaxosServer interface {
 	Accept(context.Context, *AcceptRequest) (*AcceptResponse, error)
 	ProposeLeader(context.Context, *ProposeLeaderRequest) (*ProposeLeaderResponse, error)
 	SendHeartbeat(context.Context, *LeaderHeartbeat) (*LeaderHeartbeatResponse, error)
+	Learn(context.Context, *LearnRequest) (*LearnResponse, error)
 	mustEmbedUnimplementedPaxosServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedPaxosServer) ProposeLeader(context.Context, *ProposeLeaderReq
 }
 func (UnimplementedPaxosServer) SendHeartbeat(context.Context, *LeaderHeartbeat) (*LeaderHeartbeatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendHeartbeat not implemented")
+}
+func (UnimplementedPaxosServer) Learn(context.Context, *LearnRequest) (*LearnResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Learn not implemented")
 }
 func (UnimplementedPaxosServer) mustEmbedUnimplementedPaxosServer() {}
 func (UnimplementedPaxosServer) testEmbeddedByValue()               {}
@@ -206,6 +222,24 @@ func _Paxos_SendHeartbeat_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Paxos_Learn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LearnRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaxosServer).Learn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Paxos_Learn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaxosServer).Learn(ctx, req.(*LearnRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Paxos_ServiceDesc is the grpc.ServiceDesc for Paxos service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +262,10 @@ var Paxos_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendHeartbeat",
 			Handler:    _Paxos_SendHeartbeat_Handler,
+		},
+		{
+			MethodName: "Learn",
+			Handler:    _Paxos_Learn_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

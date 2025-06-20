@@ -52,7 +52,16 @@ func (s *PaxosServer) Accept(ctx context.Context, req *pb.AcceptRequest) (*pb.Ac
 		log.Printf("[Acceptor] Slot %d: Aceito ProposalId %d com comando %+v\n",
 			req.SlotId, req.ProposalId, req.Command)
 
+		s.mu.Lock()
 		s.ApplyCommand(req.Command) // Aplicar o comando no KV Store
+		s.mu.Unlock()
+
+		if req.SlotId > s.highestSlotID {
+			s.mu.Lock()
+			s.highestSlotID = req.SlotId
+			s.mu.Unlock()
+			log.Printf("[Acceptor] Atualizado highestSlotID para %d\n", s.highestSlotID)
+		}
 
 		return &pb.AcceptResponse{
 			Success:           true,
@@ -66,4 +75,21 @@ func (s *PaxosServer) Accept(ctx context.Context, req *pb.AcceptRequest) (*pb.Ac
 			CurrentProposalId: state.HighestPromisedID,
 		}, nil
 	}
+}
+
+func (s *PaxosServer) Learn(ctx context.Context, req *pb.LearnRequest) (*pb.LearnResponse, error) {
+	slotID := req.SlotId
+
+	state := s.GetSlotState(slotID)
+
+	if state == nil || state.AcceptedCommand == nil {
+		log.Printf("[Learner] Nó %s requisitou o valor do slot %d, mas não há valor decidido aqui.", "remoto", slotID)
+		return &pb.LearnResponse{Decided: false}, nil
+	}
+
+	log.Printf("[Learner] Nó %s requisitou o valor do slot %d. Enviando comando: %v", "remoto", slotID, state.AcceptedCommand)
+	return &pb.LearnResponse{
+		Decided: true,
+		Command: state.AcceptedCommand,
+	}, nil
 }
