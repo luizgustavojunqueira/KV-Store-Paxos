@@ -101,9 +101,7 @@ func main() {
 
 	log.Printf("Paxos Node '%s' iniciado com sucesso no endereço '%s'.\n", *name, *nodeAddress)
 
-	// Todos os nós (sejam proposers ou apenas acceptors) devem monitorar a liderança.
-	// O monitor irá acionar LeaderElection se nenhum líder for detectado.
-	go paxosNode.StartLeaderMonitor()
+	paxosNode.Start()
 
 	// Se este nó for configurado para tentar ser o Proposer/Líder no início
 	if *isProposer {

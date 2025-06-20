@@ -1,11 +1,11 @@
-// Leader election and management for Paxos protocol
+// Package internal
 package internal
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"sync" // Certifique-se de importar sync
+	"sync"
 	"time"
 
 	pb "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos"
@@ -26,18 +26,24 @@ func (s *PaxosServer) ProposeLeader(ctx context.Context, req *pb.ProposeLeaderRe
 
 		return &pb.ProposeLeaderResponse{
 			Success:                        true,
-			CurrentHighestLeaderProposalId: s.leaderState.HighestPromisedID,
+			CurrentHighestLeaderProposalId: s.leaderState.AcceptedProposedID,
 			CurrentLeaderAddress:           s.leaderState.AcceptedLeaderAddr,
 			HighestDecidedSlotId:           s.highestSlotID,
 		}, nil
-	} else {
-		return &pb.ProposeLeaderResponse{
-			Success:                        false,
-			CurrentHighestLeaderProposalId: s.leaderState.HighestPromisedID,
-			CurrentLeaderAddress:           s.leaderState.AcceptedLeaderAddr,
-			HighestDecidedSlotId:           s.highestSlotID,
-		}, fmt.Errorf("proposal_id %d é menor ou igual ao mais alto prometido %d", req.ProposalId, s.leaderState.HighestPromisedID)
+
 	}
+	// recusa; informa por que e retorna o maior promised
+	errMsg := fmt.Sprintf(
+		"proposal_id %d ≤ promised %d",
+		req.ProposalId, s.leaderState.HighestPromisedID,
+	)
+	return &pb.ProposeLeaderResponse{
+		Success:                        false,
+		ErrorMessage:                   errMsg,
+		CurrentHighestLeaderProposalId: s.leaderState.HighestPromisedID,
+		CurrentLeaderAddress:           s.leaderState.AcceptedLeaderAddr,
+		HighestDecidedSlotId:           s.highestSlotID,
+	}, fmt.Errorf(errMsg)
 }
 
 func (s *PaxosServer) LeaderElection() {
@@ -229,9 +235,8 @@ func (s *PaxosServer) SendHeartbeat(ctx context.Context, req *pb.LeaderHeartbeat
 
 	// 2. Aceitar o líder e atualizar estado
 	s.currentLeader = req.LeaderAddress
-	s.leaderState.AcceptedProposedID = req.CurrentProposalId // Atualiza que este é o líder aceito
-	s.lastHeartbeat = time.Now()                             // Reseta o timer de timeout do líder
-	s.isLeader = (s.nodeName == req.LeaderAddress)           // Atualiza seu próprio estado de liderança
+	s.lastHeartbeat = time.Now()                   // Reseta o timer de timeout do líder
+	s.isLeader = (s.nodeName == req.LeaderAddress) // Atualiza seu próprio estado de liderança
 
 	// 3. Atualizar highestSlotID local se o líder tem um log mais avançado
 	if req.HighestDecidedSlotId > s.highestSlotID {
@@ -245,6 +250,16 @@ func (s *PaxosServer) SendHeartbeat(ctx context.Context, req *pb.LeaderHeartbeat
 		Success:            true,
 		KnownHighestSlotId: s.highestSlotID, // Informa ao líder o seu maior slot conhecido
 	}, nil
+}
+
+func (s *PaxosServer) Start() error {
+	s.mu.Lock()
+	s.lastHeartbeat = time.Now() // Inicializa o último heartbeat
+	s.mu.Unlock()
+
+	go s.StartLeaderMonitor()    // Inicia o monitoramento do líder
+	go s.StartLeaderHeartbeats() // Inicia os heartbeats do líder
+	return nil
 }
 
 // StartLeaderMonitor é uma goroutine que todos os nós (exceto o próprio líder) executam
