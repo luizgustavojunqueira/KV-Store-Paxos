@@ -13,17 +13,27 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (s *PaxosServer) SimulateProposer(key string, value []byte, proposalID int64) {
-	log.Printf("[Proposer] Iniciando proposta para chave '%s' com valor '%s' e proposal_id %d\n", key, string(value), proposalID)
+func (s *PaxosServer) ProposeCommand(cmd *pb.Command) bool {
+	s.mu.Lock() // Proteger o acesso a nextSlotID e isLeader
+	if !s.isLeader {
+		s.mu.Unlock()
+		log.Printf("[Proposer] Não sou o líder. Não posso propor comando %+v\n", cmd)
+		return false // A lógica real de Paxos teria que encontrar o líder ou tentar se tornar um
+	}
+	slotID := s.highestSlotID + 1 // Tentar propor no próximo slot livre
+	s.mu.Unlock()
+
+	log.Printf("[Proposer] Tentando propor comando %+v para o slot %d\n", cmd, slotID)
+
+	proposalID := time.Now().UnixNano() // Gerar um ID de proposta único baseado no tempo
 
 	registryResp, err := s.registryClient.ListAll(context.Background(), &emptypb.Empty{})
 	if err != nil {
 		log.Printf("[Proposer] Erro ao listar serviços do registry: %v", err)
-		return
+		return false
 	}
 
 	quorumSize := (len(registryResp.Services) / 2) + 1
-
 	if quorumSize == 0 {
 		quorumSize = 1
 	}
@@ -32,73 +42,73 @@ func (s *PaxosServer) SimulateProposer(key string, value []byte, proposalID int6
 
 	var (
 		promisesReceived   int
-		highestAcceptedN   int64
-		highestAcceptedVal []byte
+		highestAcceptedID  int64
+		highestAcceptedCmd *pb.Command
 		mu                 sync.Mutex
 		wg                 sync.WaitGroup
 	)
 
 	for _, service := range registryResp.Services {
-		if service.Address == s.nodeAddress {
-			log.Printf("[Proposer] (Self) Simulating Prepare response from self for key '%s' with proposal_id %d\n", key, proposalID)
-
-			resp, _ := s.Prepare(context.Background(), &pb.PrepareRequest{
-				Key:        key,
-				ProposalId: proposalID,
-			})
-
-			if resp.Success {
-				mu.Lock()
-				promisesReceived++
-				if resp.AcceptedProposalId > highestAcceptedN {
-					highestAcceptedN = resp.AcceptedProposalId
-					highestAcceptedVal = resp.AcceptedValue
-				}
-				mu.Unlock()
-			} else {
-				log.Printf("[Proposer] (Self) Prepare falhou: %s\n", resp.ErrorMessage)
-			}
-			continue
-		}
 		wg.Add(1)
-
 		go func(addr string) {
 			defer wg.Done()
 
 			conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
-				log.Fatalf("did not connect: %v", &err)
+				log.Printf("[Proposer] Não foi possível conectar ao Acceptor %s: %v\n", addr, err)
+				return
 			}
-
 			defer conn.Close()
-
 			client := pb.NewPaxosClient(conn)
-
-			log.Printf("[Proposer] Simulando Prepare para chave '%s' com proposal_id %d no serviço %s\n", key, proposalID, addr)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			resp, err := client.Prepare(ctx, &pb.PrepareRequest{
-				Key:        key,
+			req := &pb.PrepareRequest{
+				SlotId:     slotID,
 				ProposalId: proposalID,
-			})
+			}
+
+			if addr == s.nodeAddress {
+				resp, err := s.Prepare(context.Background(), req) // Call local method
+				if err != nil {
+					log.Printf("[Proposer] Erro ao enviar Prepare para self: %v", err)
+					return
+				}
+				if resp.Success {
+					mu.Lock()
+					promisesReceived++
+					if resp.AcceptedProposalId > highestAcceptedID {
+						highestAcceptedID = resp.AcceptedProposalId
+						highestAcceptedCmd = resp.AcceptedCommand
+					}
+					mu.Unlock()
+
+					log.Printf("[Proposer] (Self) Recebida Promise. Accepted ID: %d, Command: %+v\n", resp.AcceptedProposalId, resp.AcceptedCommand)
+				} else {
+					log.Printf("[Proposer] (Self) Prepare falhou: %s\n", resp.ErrorMessage)
+				}
+				return
+			}
+
+			log.Printf("[Proposer] Enviando Prepare para %s: %+v\n", addr, req)
+
+			resp, err := client.Prepare(ctx, req)
 			if err != nil {
 				log.Printf("[Proposer] Erro ao enviar Prepare para %s: %v", addr, err)
 				return
 			}
-
 			if resp.Success {
 				mu.Lock()
 				promisesReceived++
-				if resp.AcceptedProposalId > highestAcceptedN {
-					highestAcceptedN = resp.AcceptedProposalId
-					highestAcceptedVal = resp.AcceptedValue
+				if resp.AcceptedProposalId > highestAcceptedID {
+					highestAcceptedID = resp.AcceptedProposalId
+					highestAcceptedCmd = resp.AcceptedCommand
 				}
 				mu.Unlock()
-				log.Printf("[Proposer] Recebida Promise de %s para key '%s'. Accepted ID: %d, Value: '%s'\n", addr, key, resp.AcceptedProposalId, string(resp.AcceptedValue))
+				log.Printf("[Proposer] Recebida Promise de %s. Accepted ID: %d, Command: %+v\n", addr, resp.AcceptedProposalId, resp.AcceptedCommand)
 			} else {
-				log.Printf("[Proposer] Acceptor %s recusou Prepare para key '%s': %s\n", addr, key, resp.ErrorMessage)
+				log.Printf("[Proposer] Acceptor %s recusou Prepare: %s\n", addr, resp.ErrorMessage)
 			}
 		}(service.Address)
 	}
@@ -106,17 +116,16 @@ func (s *PaxosServer) SimulateProposer(key string, value []byte, proposalID int6
 	wg.Wait()
 
 	if promisesReceived < quorumSize {
-		log.Printf("[Proposer] Não recebeu promessas suficientes (%d) para atingir o quorum de %d. Abortando proposta.\n", promisesReceived, quorumSize)
-		return
+		log.Printf("[Proposer] Não recebeu promessas suficientes (%d) para atingir o quorum de %d para o slot %d. Abortando proposta.\n", promisesReceived, quorumSize, slotID)
+		return false
 	}
 
-	finalValue := value
-
-	if highestAcceptedN > 0 {
-		log.Printf("[Proposer] Um valor previamente aceito (%s) foi encontrado para chave '%s'. Usando este valor.\n", string(highestAcceptedVal), key)
-		finalValue = highestAcceptedVal
+	finalCommand := cmd
+	if highestAcceptedID > 0 && highestAcceptedCmd != nil {
+		log.Printf("[Proposer] Um comando previamente aceito (%+v) foi encontrado para slot %d. Usando este comando.\n", highestAcceptedCmd, slotID)
+		finalCommand = highestAcceptedCmd
 	} else {
-		log.Printf("[Proposer] Nenhum valor pré-existente para chave '%s'. Usando valor original '%s'.\n", key, string(finalValue))
+		log.Printf("[Proposer] Nenhum comando pré-existente para slot %d. Usando comando original %+v.\n", slotID, finalCommand)
 	}
 
 	var (
@@ -125,46 +134,47 @@ func (s *PaxosServer) SimulateProposer(key string, value []byte, proposalID int6
 	)
 
 	for _, service := range registryResp.Services {
-		if service.Address == s.nodeAddress {
-			log.Printf("[Proposer] (Self) Simulating Accept response from self for key '%s'\n", key)
-			resp, _ := s.Accept(context.Background(), &pb.AcceptRequest{
-				ProposalId: proposalID,
-				Key:        key,
-				Value:      finalValue,
-			})
-			if resp.Success {
-				mu.Lock()
-				acceptsReceived++
-				mu.Unlock()
-			} else {
-				log.Printf("[Proposer] (Self) Acceptor recusou Accept para key '%s': %s\n", key, resp.ErrorMessage)
-			}
-			continue
-		}
-
 		wgAccepts.Add(1)
-
 		go func(addr string) {
 			defer wgAccepts.Done()
-
 			conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
 				log.Printf("[Proposer] Não foi possível conectar ao Acceptor %s: %v\n", addr, err)
 				return
 			}
-			defer conn.Close()
 
+			defer conn.Close()
 			client := pb.NewPaxosClient(conn)
-			log.Printf("[Proposer] Simulando Accept para chave '%s' com proposal_id %d no serviço %s\n", key, proposalID, addr)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			resp, err := client.Accept(ctx, &pb.AcceptRequest{
+			req := &pb.AcceptRequest{
+				SlotId:     slotID,
 				ProposalId: proposalID,
-				Key:        key,
-				Value:      finalValue,
-			})
+				Command:    finalCommand,
+			}
+
+			if addr == s.nodeAddress {
+				resp, err := s.Accept(context.Background(), req) // Call local method
+				if err != nil {
+					log.Printf("[Proposer] Erro ao enviar Accept para self: %v", err)
+					return
+				}
+				if resp.Success {
+					mu.Lock()
+					acceptsReceived++
+					mu.Unlock()
+					log.Printf("[Proposer] (Self) Aceito Accept. Current Proposal ID: %d\n", resp.CurrentProposalId)
+				} else {
+					log.Printf("[Proposer] (Self) Acceptor recusou Accept: %s\n", resp.ErrorMessage)
+				}
+				return
+			}
+
+			log.Printf("[Proposer] Enviando Accept para %s: %+v\n", addr, req)
+
+			resp, err := client.Accept(ctx, req)
 			if err != nil {
 				log.Printf("[Proposer] Erro ao enviar Accept para %s: %v", addr, err)
 				return
@@ -174,9 +184,9 @@ func (s *PaxosServer) SimulateProposer(key string, value []byte, proposalID int6
 				mu.Lock()
 				acceptsReceived++
 				mu.Unlock()
-				log.Printf("[Proposer] Recebida Aceitação de %s para key '%s'. Proposal ID: %d\n", addr, key, resp.CurrentProposalId)
+				log.Printf("[Proposer] Recebida Aceitação de %s para slot %d. Proposal ID: %d\n", addr, slotID, resp.CurrentProposalId)
 			} else {
-				log.Printf("[Proposer] Acceptor %s recusou Accept para key '%s': %s\n", addr, key, resp.ErrorMessage)
+				log.Printf("[Proposer] Acceptor %s recusou Accept para slot %d: %s\n", addr, slotID, resp.ErrorMessage)
 			}
 		}(service.Address)
 	}
@@ -184,11 +194,24 @@ func (s *PaxosServer) SimulateProposer(key string, value []byte, proposalID int6
 	wgAccepts.Wait()
 
 	if acceptsReceived < quorumSize {
-		log.Printf("[Proposer] Não obteve Quorum de Accepted (%d/%d). Proposta para chave '%s' NÃO DECIDIDA.\n", acceptsReceived, quorumSize, key)
-		return
+		log.Printf("[Proposer] Não obteve Quorum de Accepted (%d/%d) para slot %d. Comando NÃO DECIDIDO.\n", acceptsReceived, quorumSize, slotID)
+		return false
 	}
-	log.Printf("[Proposer] Proposta para chave '%s' DECIDIDA com sucesso! Valor final: '%s'\n", key, string(finalValue))
-	s.GetState(key).acceptedValue = finalValue
-	s.GetState(key).acceptedProposedID = proposalID
-	s.GetState(key).highestPromisedID = proposalID
+
+	log.Printf("[Proposer] Comando para slot %d DECIDIDO com sucesso! Comando final: %+v\n", slotID, finalCommand)
+
+	s.mu.Lock()
+	if slotID > s.highestSlotID {
+		s.highestSlotID = slotID
+	}
+	s.mu.Unlock()
+	return true
+}
+
+func (s *PaxosServer) TryBecomeLeader() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.isLeader = true // Para simulação, apenas o nó com a flag se torna líder
+	log.Printf("[Leader Election] %s se declarou LÍDER.\n", s.nodeAddress)
+	return true
 }

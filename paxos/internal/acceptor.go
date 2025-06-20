@@ -14,54 +14,56 @@ import (
 )
 
 func (s *PaxosServer) Prepare(ctx context.Context, req *pb.PrepareRequest) (*pb.PrepareResponse, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	state := s.GetSlotState(req.SlotId)
 
-	state := s.GetState(req.Key)
+	log.Printf("[Acceptor] Slot %d: Recebido Prepare com proposal_id %d. Estado atual: promised=%d, accepted_n=%d\n",
+		req.SlotId, req.ProposalId, state.HighestPromisedID, state.AcceptedProposedID)
 
-	log.Printf("[Acceptor] Recebido Prepare para chave '%s' com proposal_id %d. Estado atual: promised=%d, accepted_n=%d\n", req.Key, req.ProposalId, state.highestPromisedID, state.acceptedProposedID)
-
-	if req.ProposalId > state.highestPromisedID {
-		state.highestPromisedID = req.ProposalId
+	if req.ProposalId > state.HighestPromisedID {
+		state.HighestPromisedID = req.ProposalId // Promessa feita
 
 		return &pb.PrepareResponse{
 			Success:            true,
-			AcceptedProposalId: state.acceptedProposedID,
-			AcceptedValue:      state.acceptedValue,
+			AcceptedProposalId: state.AcceptedProposedID,
+			AcceptedCommand:    state.AcceptedCommand,
+			CurrentProposalId:  state.HighestPromisedID,
 		}, nil
 	} else {
 		return &pb.PrepareResponse{
-			Success:      false,
-			ErrorMessage: fmt.Sprintf("Já prometi para uma proposta %d maior ou igual a %d", state.highestPromisedID, req.ProposalId),
+			Success: false,
+			ErrorMessage: fmt.Sprintf("Já prometi para uma proposta %d maior ou igual a %d para o slot %d",
+				state.HighestPromisedID, req.ProposalId, req.SlotId),
+			CurrentProposalId: state.HighestPromisedID,
 		}, nil
 	}
 }
 
 func (s *PaxosServer) Accept(ctx context.Context, req *pb.AcceptRequest) (*pb.AcceptResponse, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	state := s.GetSlotState(req.SlotId) // Obter estado para o slot específico
 
-	state := s.GetState(req.Key)
+	log.Printf("[Acceptor] Slot %d: Recebido Accept com proposal_id %d e comando %+v. Estado atual: promised=%d, accepted_n=%d\n",
+		req.SlotId, req.ProposalId, req.Command, state.HighestPromisedID, state.AcceptedProposedID)
 
-	log.Printf("[Acceptor] Recebido Accept para chave '%s' com proposal_id %d e valor '%s'. Estado atual: promised=%d, accepted_n=%d\n", req.Key, req.ProposalId, string(req.Value), state.highestPromisedID, state.acceptedProposedID)
+	if req.ProposalId >= state.HighestPromisedID {
+		state.HighestPromisedID = req.ProposalId
+		state.AcceptedProposedID = req.ProposalId
+		state.AcceptedCommand = req.Command
 
-	if req.ProposalId >= state.highestPromisedID {
-		state.highestPromisedID = req.ProposalId
-		state.acceptedProposedID = req.ProposalId
-		state.acceptedValue = req.Value
+		log.Printf("[Acceptor] Slot %d: Aceito ProposalId %d com comando %+v\n",
+			req.SlotId, req.ProposalId, req.Command)
 
-		log.Printf("[Acceptor] Aceito ProposalId %d para chave '%s' com valor '%s'\n",
-			req.ProposalId, req.Key, string(req.Value))
+		s.ApplyCommand(req.Command) // Aplicar o comando no KV Store
 
 		return &pb.AcceptResponse{
 			Success:           true,
-			CurrentProposalId: state.highestPromisedID,
+			CurrentProposalId: state.HighestPromisedID,
 		}, nil
 	} else {
 		return &pb.AcceptResponse{
-			Success:           false,
-			ErrorMessage:      fmt.Sprintf("Já aceitei uma proposta %d maior ou igual a %d", state.acceptedProposedID, req.ProposalId),
-			CurrentProposalId: state.highestPromisedID,
+			Success: false,
+			ErrorMessage: fmt.Sprintf("Já prometi para uma proposta %d maior ou igual a %d para o slot %d",
+				state.HighestPromisedID, req.ProposalId, req.SlotId),
+			CurrentProposalId: state.HighestPromisedID,
 		}, nil
 	}
 }

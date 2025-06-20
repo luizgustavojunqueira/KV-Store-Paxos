@@ -21,17 +21,126 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type CommandType int32
+
+const (
+	CommandType_UNKNOWN CommandType = 0 // comando desconhecido
+	CommandType_SET     CommandType = 1 // comando para definir um valor
+	CommandType_DELETE  CommandType = 2 // comando para deletar um valor
+)
+
+// Enum value maps for CommandType.
+var (
+	CommandType_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "SET",
+		2: "DELETE",
+	}
+	CommandType_value = map[string]int32{
+		"UNKNOWN": 0,
+		"SET":     1,
+		"DELETE":  2,
+	}
+)
+
+func (x CommandType) Enum() *CommandType {
+	p := new(CommandType)
+	*p = x
+	return p
+}
+
+func (x CommandType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CommandType) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_paxos_paxos_proto_enumTypes[0].Descriptor()
+}
+
+func (CommandType) Type() protoreflect.EnumType {
+	return &file_proto_paxos_paxos_proto_enumTypes[0]
+}
+
+func (x CommandType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CommandType.Descriptor instead.
+func (CommandType) EnumDescriptor() ([]byte, []int) {
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{0}
+}
+
+type Command struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Type          CommandType            `protobuf:"varint,1,opt,name=type,proto3,enum=paxos.CommandType" json:"type,omitempty"` // tipo do comando
+	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`                           // chave do valor a ser manipulado
+	Value         []byte                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`                       // valor a ser manipulado, se aplicável
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Command) Reset() {
+	*x = Command{}
+	mi := &file_proto_paxos_paxos_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Command) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Command) ProtoMessage() {}
+
+func (x *Command) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_paxos_paxos_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Command.ProtoReflect.Descriptor instead.
+func (*Command) Descriptor() ([]byte, []int) {
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Command) GetType() CommandType {
+	if x != nil {
+		return x.Type
+	}
+	return CommandType_UNKNOWN
+}
+
+func (x *Command) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *Command) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
 type PrepareRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
-	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"` // número da proposta
+	SlotId        int64                  `protobuf:"varint,2,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`             // número do slot da proposta
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PrepareRequest) Reset() {
 	*x = PrepareRequest{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[0]
+	mi := &file_proto_paxos_paxos_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +152,7 @@ func (x *PrepareRequest) String() string {
 func (*PrepareRequest) ProtoMessage() {}
 
 func (x *PrepareRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[0]
+	mi := &file_proto_paxos_paxos_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +165,7 @@ func (x *PrepareRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrepareRequest.ProtoReflect.Descriptor instead.
 func (*PrepareRequest) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{0}
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PrepareRequest) GetProposalId() int64 {
@@ -66,26 +175,27 @@ func (x *PrepareRequest) GetProposalId() int64 {
 	return 0
 }
 
-func (x *PrepareRequest) GetKey() string {
+func (x *PrepareRequest) GetSlotId() int64 {
 	if x != nil {
-		return x.Key
+		return x.SlotId
 	}
-	return ""
+	return 0
 }
 
 type PrepareResponse struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	Success            bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	AcceptedProposalId int64                  `protobuf:"varint,2,opt,name=accepted_proposal_id,json=acceptedProposalId,proto3" json:"accepted_proposal_id,omitempty"` // número da proposta aceita
-	AcceptedValue      []byte                 `protobuf:"bytes,3,opt,name=accepted_value,json=acceptedValue,proto3" json:"accepted_value,omitempty"`                   // valor da proposta aceita
-	ErrorMessage       string                 `protobuf:"bytes,4,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`                      // mensagem de erro, se houver
+	ErrorMessage       string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`                      // mensagem de erro, se houver
+	AcceptedProposalId int64                  `protobuf:"varint,3,opt,name=accepted_proposal_id,json=acceptedProposalId,proto3" json:"accepted_proposal_id,omitempty"` // número da proposta aceita
+	AcceptedCommand    *Command               `protobuf:"bytes,4,opt,name=accepted_command,json=acceptedCommand,proto3" json:"accepted_command,omitempty"`             // comando aceito, se houver
+	CurrentProposalId  int64                  `protobuf:"varint,5,opt,name=current_proposal_id,json=currentProposalId,proto3" json:"current_proposal_id,omitempty"`    // número da proposta atual
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
 func (x *PrepareResponse) Reset() {
 	*x = PrepareResponse{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[1]
+	mi := &file_proto_paxos_paxos_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -97,7 +207,7 @@ func (x *PrepareResponse) String() string {
 func (*PrepareResponse) ProtoMessage() {}
 
 func (x *PrepareResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[1]
+	mi := &file_proto_paxos_paxos_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -110,7 +220,7 @@ func (x *PrepareResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrepareResponse.ProtoReflect.Descriptor instead.
 func (*PrepareResponse) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{1}
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *PrepareResponse) GetSuccess() bool {
@@ -120,20 +230,6 @@ func (x *PrepareResponse) GetSuccess() bool {
 	return false
 }
 
-func (x *PrepareResponse) GetAcceptedProposalId() int64 {
-	if x != nil {
-		return x.AcceptedProposalId
-	}
-	return 0
-}
-
-func (x *PrepareResponse) GetAcceptedValue() []byte {
-	if x != nil {
-		return x.AcceptedValue
-	}
-	return nil
-}
-
 func (x *PrepareResponse) GetErrorMessage() string {
 	if x != nil {
 		return x.ErrorMessage
@@ -141,18 +237,39 @@ func (x *PrepareResponse) GetErrorMessage() string {
 	return ""
 }
 
+func (x *PrepareResponse) GetAcceptedProposalId() int64 {
+	if x != nil {
+		return x.AcceptedProposalId
+	}
+	return 0
+}
+
+func (x *PrepareResponse) GetAcceptedCommand() *Command {
+	if x != nil {
+		return x.AcceptedCommand
+	}
+	return nil
+}
+
+func (x *PrepareResponse) GetCurrentProposalId() int64 {
+	if x != nil {
+		return x.CurrentProposalId
+	}
+	return 0
+}
+
 type AcceptRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"` // número da proposta
-	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`                                  // chave do valor a ser aceito
-	Value         []byte                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`                              // valor a ser aceito
+	SlotId        int64                  `protobuf:"varint,2,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`             // número do slot da proposta
+	Command       *Command               `protobuf:"bytes,3,opt,name=command,proto3" json:"command,omitempty"`                          // comando a ser aceito
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AcceptRequest) Reset() {
 	*x = AcceptRequest{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[2]
+	mi := &file_proto_paxos_paxos_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -164,7 +281,7 @@ func (x *AcceptRequest) String() string {
 func (*AcceptRequest) ProtoMessage() {}
 
 func (x *AcceptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[2]
+	mi := &file_proto_paxos_paxos_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -177,7 +294,7 @@ func (x *AcceptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptRequest.ProtoReflect.Descriptor instead.
 func (*AcceptRequest) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{2}
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *AcceptRequest) GetProposalId() int64 {
@@ -187,16 +304,16 @@ func (x *AcceptRequest) GetProposalId() int64 {
 	return 0
 }
 
-func (x *AcceptRequest) GetKey() string {
+func (x *AcceptRequest) GetSlotId() int64 {
 	if x != nil {
-		return x.Key
+		return x.SlotId
 	}
-	return ""
+	return 0
 }
 
-func (x *AcceptRequest) GetValue() []byte {
+func (x *AcceptRequest) GetCommand() *Command {
 	if x != nil {
-		return x.Value
+		return x.Command
 	}
 	return nil
 }
@@ -212,7 +329,7 @@ type AcceptResponse struct {
 
 func (x *AcceptResponse) Reset() {
 	*x = AcceptResponse{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[3]
+	mi := &file_proto_paxos_paxos_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -224,7 +341,7 @@ func (x *AcceptResponse) String() string {
 func (*AcceptResponse) ProtoMessage() {}
 
 func (x *AcceptResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[3]
+	mi := &file_proto_paxos_paxos_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -237,7 +354,7 @@ func (x *AcceptResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptResponse.ProtoReflect.Descriptor instead.
 func (*AcceptResponse) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{3}
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AcceptResponse) GetSuccess() bool {
@@ -265,25 +382,35 @@ var File_proto_paxos_paxos_proto protoreflect.FileDescriptor
 
 const file_proto_paxos_paxos_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/paxos/paxos.proto\x12\x05paxos\"C\n" +
+	"\x17proto/paxos/paxos.proto\x12\x05paxos\"Y\n" +
+	"\aCommand\x12&\n" +
+	"\x04type\x18\x01 \x01(\x0e2\x12.paxos.CommandTypeR\x04type\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x03 \x01(\fR\x05value\"J\n" +
 	"\x0ePrepareRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\x03R\n" +
-	"proposalId\x12\x10\n" +
-	"\x03key\x18\x02 \x01(\tR\x03key\"\xa9\x01\n" +
+	"proposalId\x12\x17\n" +
+	"\aslot_id\x18\x02 \x01(\x03R\x06slotId\"\xed\x01\n" +
 	"\x0fPrepareResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x120\n" +
-	"\x14accepted_proposal_id\x18\x02 \x01(\x03R\x12acceptedProposalId\x12%\n" +
-	"\x0eaccepted_value\x18\x03 \x01(\fR\racceptedValue\x12#\n" +
-	"\rerror_message\x18\x04 \x01(\tR\ferrorMessage\"X\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\x120\n" +
+	"\x14accepted_proposal_id\x18\x03 \x01(\x03R\x12acceptedProposalId\x129\n" +
+	"\x10accepted_command\x18\x04 \x01(\v2\x0e.paxos.CommandR\x0facceptedCommand\x12.\n" +
+	"\x13current_proposal_id\x18\x05 \x01(\x03R\x11currentProposalId\"s\n" +
 	"\rAcceptRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\x03R\n" +
-	"proposalId\x12\x10\n" +
-	"\x03key\x18\x02 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x03 \x01(\fR\x05value\"\x7f\n" +
+	"proposalId\x12\x17\n" +
+	"\aslot_id\x18\x02 \x01(\x03R\x06slotId\x12(\n" +
+	"\acommand\x18\x03 \x01(\v2\x0e.paxos.CommandR\acommand\"\x7f\n" +
 	"\x0eAcceptResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12.\n" +
 	"\x13current_proposal_id\x18\x02 \x01(\x03R\x11currentProposalId\x12#\n" +
-	"\rerror_message\x18\x03 \x01(\tR\ferrorMessage2x\n" +
+	"\rerror_message\x18\x03 \x01(\tR\ferrorMessage*/\n" +
+	"\vCommandType\x12\v\n" +
+	"\aUNKNOWN\x10\x00\x12\a\n" +
+	"\x03SET\x10\x01\x12\n" +
+	"\n" +
+	"\x06DELETE\x10\x022x\n" +
 	"\x05Paxos\x128\n" +
 	"\aPrepare\x12\x15.paxos.PrepareRequest\x1a\x16.paxos.PrepareResponse\x125\n" +
 	"\x06Accept\x12\x14.paxos.AcceptRequest\x1a\x15.paxos.AcceptResponseB6Z4github.com/luizgustavojunqueira/KV-Store-Paxos/paxosb\x06proto3"
@@ -300,23 +427,29 @@ func file_proto_paxos_paxos_proto_rawDescGZIP() []byte {
 	return file_proto_paxos_paxos_proto_rawDescData
 }
 
-var file_proto_paxos_paxos_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_paxos_paxos_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_proto_paxos_paxos_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_paxos_paxos_proto_goTypes = []any{
-	(*PrepareRequest)(nil),  // 0: paxos.PrepareRequest
-	(*PrepareResponse)(nil), // 1: paxos.PrepareResponse
-	(*AcceptRequest)(nil),   // 2: paxos.AcceptRequest
-	(*AcceptResponse)(nil),  // 3: paxos.AcceptResponse
+	(CommandType)(0),        // 0: paxos.CommandType
+	(*Command)(nil),         // 1: paxos.Command
+	(*PrepareRequest)(nil),  // 2: paxos.PrepareRequest
+	(*PrepareResponse)(nil), // 3: paxos.PrepareResponse
+	(*AcceptRequest)(nil),   // 4: paxos.AcceptRequest
+	(*AcceptResponse)(nil),  // 5: paxos.AcceptResponse
 }
 var file_proto_paxos_paxos_proto_depIdxs = []int32{
-	0, // 0: paxos.Paxos.Prepare:input_type -> paxos.PrepareRequest
-	2, // 1: paxos.Paxos.Accept:input_type -> paxos.AcceptRequest
-	1, // 2: paxos.Paxos.Prepare:output_type -> paxos.PrepareResponse
-	3, // 3: paxos.Paxos.Accept:output_type -> paxos.AcceptResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: paxos.Command.type:type_name -> paxos.CommandType
+	1, // 1: paxos.PrepareResponse.accepted_command:type_name -> paxos.Command
+	1, // 2: paxos.AcceptRequest.command:type_name -> paxos.Command
+	2, // 3: paxos.Paxos.Prepare:input_type -> paxos.PrepareRequest
+	4, // 4: paxos.Paxos.Accept:input_type -> paxos.AcceptRequest
+	3, // 5: paxos.Paxos.Prepare:output_type -> paxos.PrepareResponse
+	5, // 6: paxos.Paxos.Accept:output_type -> paxos.AcceptResponse
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_paxos_paxos_proto_init() }
@@ -329,13 +462,14 @@ func file_proto_paxos_paxos_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_paxos_paxos_proto_rawDesc), len(file_proto_paxos_paxos_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   4,
+			NumEnums:      1,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_proto_paxos_paxos_proto_goTypes,
 		DependencyIndexes: file_proto_paxos_paxos_proto_depIdxs,
+		EnumInfos:         file_proto_paxos_paxos_proto_enumTypes,
 		MessageInfos:      file_proto_paxos_paxos_proto_msgTypes,
 	}.Build()
 	File_proto_paxos_paxos_proto = out.File

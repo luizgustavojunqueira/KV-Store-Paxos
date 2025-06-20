@@ -8,23 +8,35 @@ service Paxos{
   rpc Accept(AcceptRequest) returns (AcceptResponse);
 }
 
+enum CommandType{
+  UNKNOWN = 0; // comando desconhecido
+  SET = 1; // comando para definir um valor
+  DELETE = 2; // comando para deletar um valor
+}
+
+message Command{
+  CommandType type = 1; // tipo do comando
+  string key = 2; // chave do valor a ser manipulado
+  bytes value = 3; // valor a ser manipulado, se aplicável
+}
+
 message PrepareRequest {
-  int64 proposal_id = 1;
-  string key = 2; 
+  int64 proposal_id = 1; // número da proposta
+  int64 slot_id = 2; // número do slot da proposta
 }
 
 message PrepareResponse {
   bool success = 1;          
-  int64 accepted_proposal_id = 2; // número da proposta aceita
-  bytes accepted_value = 3; // valor da proposta aceita
-  string error_message = 4; // mensagem de erro, se houver
+  string error_message = 2; // mensagem de erro, se houver
+  int64 accepted_proposal_id = 3; // número da proposta aceita
+  Command accepted_command = 4; // comando aceito, se houver
+  int64 current_proposal_id = 5; // número da proposta atual
 }
 
 message AcceptRequest {
   int64 proposal_id = 1; // número da proposta
-  string key = 2; // chave do valor a ser aceito
-  bytes value = 3; // valor a ser aceito
-
+  int64 slot_id = 2; // número do slot da proposta
+  Command command = 3; // comando a ser aceito
 }
 
 message AcceptResponse {
