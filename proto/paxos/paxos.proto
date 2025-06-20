@@ -6,6 +6,8 @@ option go_package = "github.com/luizgustavojunqueira/KV-Store-Paxos/paxos";
 service Paxos{
   rpc Prepare(PrepareRequest) returns (PrepareResponse);
   rpc Accept(AcceptRequest) returns (AcceptResponse);
+  rpc ProposeLeader(ProposeLeaderRequest) returns (ProposeLeaderResponse);
+  rpc SendHeartbeat(LeaderHeartbeat) returns (LeaderHeartbeatResponse);
 }
 
 enum CommandType{
@@ -45,3 +47,28 @@ message AcceptResponse {
   string error_message = 3; // mensagem de erro, se houver
 }
 
+
+message ProposeLeaderRequest{
+  int64 proposal_id = 1; // Número da proposta para a eleição do líder
+  string candidate_address = 2; // Endereço do candidato a líder
+}
+
+message ProposeLeaderResponse{
+  bool success = 1;
+  string error_message = 2; // Mensagem de erro, se houver
+  int64 current_highest_leader_proposal_id = 3; // Número da proposta do líder atual
+  string current_leader_address = 4; // Endereço do líder atual
+  int64 highest_decided_slot_id = 5; // Slot mais alto decidido até o momento
+}
+
+message LeaderHeartbeat{
+  string leader_address = 1; // Endereço do líder
+  int64 current_proposal_id = 2; // Número da proposta atual do líder
+  int64 highest_decided_slot_id = 3; // Slot mais alto decidido até o momento
+}
+
+message LeaderHeartbeatResponse{
+  bool success = 1; // Indica se o heartbeat foi bem-sucedido
+  string error_message = 2; // Mensagem de erro, se houver
+  int64 known_highest_slot_id = 3; // Slot mais alto que o Acceptor/Learner conhece
+}

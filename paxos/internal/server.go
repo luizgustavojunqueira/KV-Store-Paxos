@@ -4,6 +4,7 @@ import (
 	"log"
 	"maps"
 	"sync"
+	"time"
 
 	pb "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos"
 
@@ -12,24 +13,30 @@ import (
 
 type PaxosServer struct {
 	pb.UnimplementedPaxosServer
-	mu             sync.RWMutex
-	slots          map[int64]*PaxosState
-	kvStore        map[string][]byte
-	registryClient rpb.RegistryClient
-	nodeAddress    string
-	leaderID       string
-	isLeader       bool
-	highestSlotID  int64
+	mu               sync.RWMutex
+	slots            map[int64]*PaxosState
+	kvStore          map[string][]byte
+	registryClient   rpb.RegistryClient
+	nodeAddress      string
+	currentLeader    string
+	isLeader         bool
+	highestSlotID    int64
+	leaderState      *LeaderPaxosState
+	lastHeartbeat    time.Time
+	leaderTimeout    time.Duration
+	leaderProposalID int64
+	nodeName         string
 }
 
-func NewPaxosServer(registryClient rpb.RegistryClient, nodeAddress string) *PaxosServer {
+func NewPaxosServer(registryClient rpb.RegistryClient, nodeAddress, nodeName string) *PaxosServer {
 	return &PaxosServer{
 		slots:          make(map[int64]*PaxosState),
 		kvStore:        make(map[string][]byte),
+		leaderState:    &LeaderPaxosState{},
+		leaderTimeout:  5 * time.Second, // Tempo de espera para considerar o líder inativo
 		registryClient: registryClient,
 		nodeAddress:    nodeAddress,
-		leaderID:       "",
-		isLeader:       false,
+		nodeName:       nodeName,
 		highestSlotID:  0,
 	}
 }

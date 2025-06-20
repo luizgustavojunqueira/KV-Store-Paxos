@@ -3,7 +3,7 @@
 # --- Configurações ---
 REGISTRY_ADDR="localhost:50051"
 BASE_PAXOS_PORT=8080    # Porta inicial para os nós Paxos (Acceptors)
-NUM_ACCEPTORS=10         # Número de nós Paxos que serão Acceptors/Learners
+NUM_ACCEPTORS=2        # Número de nós Paxos que serão Acceptors/Learners
 LOG_DIR="paxos_logs"    # Diretório para armazenar os logs
 REGISTRY_LOG="${LOG_DIR}/registry.log"
 
@@ -42,7 +42,7 @@ echo "Iniciando Registry Server em ${REGISTRY_ADDR}..."
 go run registry_server/cmd/main.go > "$REGISTRY_LOG" 2>&1 &
 REGISTRY_PID=$!
 echo "Registry Server iniciado (PID: ${REGISTRY_PID}), log: ${REGISTRY_LOG}"
-sleep 1 # Dê um tempo para o registry iniciar
+sleep 10 # Dê um tempo para o registry iniciar
 
 # --- 2. Iniciar os Nós Paxos (Acceptors/Learners) ---
 PAXOS_PIDS=() # Array para armazenar os PIDs dos nós Paxos

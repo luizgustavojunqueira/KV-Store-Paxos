@@ -378,6 +378,254 @@ func (x *AcceptResponse) GetErrorMessage() string {
 	return ""
 }
 
+type ProposeLeaderRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	ProposalId       int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`                  // Número da proposta para a eleição do líder
+	CandidateAddress string                 `protobuf:"bytes,2,opt,name=candidate_address,json=candidateAddress,proto3" json:"candidate_address,omitempty"` // Endereço do candidato a líder
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ProposeLeaderRequest) Reset() {
+	*x = ProposeLeaderRequest{}
+	mi := &file_proto_paxos_paxos_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProposeLeaderRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProposeLeaderRequest) ProtoMessage() {}
+
+func (x *ProposeLeaderRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_paxos_paxos_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProposeLeaderRequest.ProtoReflect.Descriptor instead.
+func (*ProposeLeaderRequest) Descriptor() ([]byte, []int) {
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ProposeLeaderRequest) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
+}
+
+func (x *ProposeLeaderRequest) GetCandidateAddress() string {
+	if x != nil {
+		return x.CandidateAddress
+	}
+	return ""
+}
+
+type ProposeLeaderResponse struct {
+	state                          protoimpl.MessageState `protogen:"open.v1"`
+	Success                        bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	ErrorMessage                   string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`                                                              // Mensagem de erro, se houver
+	CurrentHighestLeaderProposalId int64                  `protobuf:"varint,3,opt,name=current_highest_leader_proposal_id,json=currentHighestLeaderProposalId,proto3" json:"current_highest_leader_proposal_id,omitempty"` // Número da proposta do líder atual
+	CurrentLeaderAddress           string                 `protobuf:"bytes,4,opt,name=current_leader_address,json=currentLeaderAddress,proto3" json:"current_leader_address,omitempty"`                                    // Endereço do líder atual
+	HighestDecidedSlotId           int64                  `protobuf:"varint,5,opt,name=highest_decided_slot_id,json=highestDecidedSlotId,proto3" json:"highest_decided_slot_id,omitempty"`                                 // Slot mais alto decidido até o momento
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
+}
+
+func (x *ProposeLeaderResponse) Reset() {
+	*x = ProposeLeaderResponse{}
+	mi := &file_proto_paxos_paxos_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProposeLeaderResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProposeLeaderResponse) ProtoMessage() {}
+
+func (x *ProposeLeaderResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_paxos_paxos_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProposeLeaderResponse.ProtoReflect.Descriptor instead.
+func (*ProposeLeaderResponse) Descriptor() ([]byte, []int) {
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ProposeLeaderResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ProposeLeaderResponse) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
+func (x *ProposeLeaderResponse) GetCurrentHighestLeaderProposalId() int64 {
+	if x != nil {
+		return x.CurrentHighestLeaderProposalId
+	}
+	return 0
+}
+
+func (x *ProposeLeaderResponse) GetCurrentLeaderAddress() string {
+	if x != nil {
+		return x.CurrentLeaderAddress
+	}
+	return ""
+}
+
+func (x *ProposeLeaderResponse) GetHighestDecidedSlotId() int64 {
+	if x != nil {
+		return x.HighestDecidedSlotId
+	}
+	return 0
+}
+
+type LeaderHeartbeat struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	LeaderAddress        string                 `protobuf:"bytes,1,opt,name=leader_address,json=leaderAddress,proto3" json:"leader_address,omitempty"`                           // Endereço do líder
+	CurrentProposalId    int64                  `protobuf:"varint,2,opt,name=current_proposal_id,json=currentProposalId,proto3" json:"current_proposal_id,omitempty"`            // Número da proposta atual do líder
+	HighestDecidedSlotId int64                  `protobuf:"varint,3,opt,name=highest_decided_slot_id,json=highestDecidedSlotId,proto3" json:"highest_decided_slot_id,omitempty"` // Slot mais alto decidido até o momento
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *LeaderHeartbeat) Reset() {
+	*x = LeaderHeartbeat{}
+	mi := &file_proto_paxos_paxos_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LeaderHeartbeat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaderHeartbeat) ProtoMessage() {}
+
+func (x *LeaderHeartbeat) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_paxos_paxos_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaderHeartbeat.ProtoReflect.Descriptor instead.
+func (*LeaderHeartbeat) Descriptor() ([]byte, []int) {
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *LeaderHeartbeat) GetLeaderAddress() string {
+	if x != nil {
+		return x.LeaderAddress
+	}
+	return ""
+}
+
+func (x *LeaderHeartbeat) GetCurrentProposalId() int64 {
+	if x != nil {
+		return x.CurrentProposalId
+	}
+	return 0
+}
+
+func (x *LeaderHeartbeat) GetHighestDecidedSlotId() int64 {
+	if x != nil {
+		return x.HighestDecidedSlotId
+	}
+	return 0
+}
+
+type LeaderHeartbeatResponse struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Success            bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`                                                     // Indica se o heartbeat foi bem-sucedido
+	ErrorMessage       string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`                        // Mensagem de erro, se houver
+	KnownHighestSlotId int64                  `protobuf:"varint,3,opt,name=known_highest_slot_id,json=knownHighestSlotId,proto3" json:"known_highest_slot_id,omitempty"` // Slot mais alto que o Acceptor/Learner conhece
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *LeaderHeartbeatResponse) Reset() {
+	*x = LeaderHeartbeatResponse{}
+	mi := &file_proto_paxos_paxos_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LeaderHeartbeatResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LeaderHeartbeatResponse) ProtoMessage() {}
+
+func (x *LeaderHeartbeatResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_paxos_paxos_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LeaderHeartbeatResponse.ProtoReflect.Descriptor instead.
+func (*LeaderHeartbeatResponse) Descriptor() ([]byte, []int) {
+	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *LeaderHeartbeatResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *LeaderHeartbeatResponse) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
+func (x *LeaderHeartbeatResponse) GetKnownHighestSlotId() int64 {
+	if x != nil {
+		return x.KnownHighestSlotId
+	}
+	return 0
+}
+
 var File_proto_paxos_paxos_proto protoreflect.FileDescriptor
 
 const file_proto_paxos_paxos_proto_rawDesc = "" +
@@ -405,15 +653,35 @@ const file_proto_paxos_paxos_proto_rawDesc = "" +
 	"\x0eAcceptResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12.\n" +
 	"\x13current_proposal_id\x18\x02 \x01(\x03R\x11currentProposalId\x12#\n" +
-	"\rerror_message\x18\x03 \x01(\tR\ferrorMessage*/\n" +
+	"\rerror_message\x18\x03 \x01(\tR\ferrorMessage\"d\n" +
+	"\x14ProposeLeaderRequest\x12\x1f\n" +
+	"\vproposal_id\x18\x01 \x01(\x03R\n" +
+	"proposalId\x12+\n" +
+	"\x11candidate_address\x18\x02 \x01(\tR\x10candidateAddress\"\x8f\x02\n" +
+	"\x15ProposeLeaderResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\x12J\n" +
+	"\"current_highest_leader_proposal_id\x18\x03 \x01(\x03R\x1ecurrentHighestLeaderProposalId\x124\n" +
+	"\x16current_leader_address\x18\x04 \x01(\tR\x14currentLeaderAddress\x125\n" +
+	"\x17highest_decided_slot_id\x18\x05 \x01(\x03R\x14highestDecidedSlotId\"\x9f\x01\n" +
+	"\x0fLeaderHeartbeat\x12%\n" +
+	"\x0eleader_address\x18\x01 \x01(\tR\rleaderAddress\x12.\n" +
+	"\x13current_proposal_id\x18\x02 \x01(\x03R\x11currentProposalId\x125\n" +
+	"\x17highest_decided_slot_id\x18\x03 \x01(\x03R\x14highestDecidedSlotId\"\x8b\x01\n" +
+	"\x17LeaderHeartbeatResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\x121\n" +
+	"\x15known_highest_slot_id\x18\x03 \x01(\x03R\x12knownHighestSlotId*/\n" +
 	"\vCommandType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\a\n" +
 	"\x03SET\x10\x01\x12\n" +
 	"\n" +
-	"\x06DELETE\x10\x022x\n" +
+	"\x06DELETE\x10\x022\x8d\x02\n" +
 	"\x05Paxos\x128\n" +
 	"\aPrepare\x12\x15.paxos.PrepareRequest\x1a\x16.paxos.PrepareResponse\x125\n" +
-	"\x06Accept\x12\x14.paxos.AcceptRequest\x1a\x15.paxos.AcceptResponseB6Z4github.com/luizgustavojunqueira/KV-Store-Paxos/paxosb\x06proto3"
+	"\x06Accept\x12\x14.paxos.AcceptRequest\x1a\x15.paxos.AcceptResponse\x12J\n" +
+	"\rProposeLeader\x12\x1b.paxos.ProposeLeaderRequest\x1a\x1c.paxos.ProposeLeaderResponse\x12G\n" +
+	"\rSendHeartbeat\x12\x16.paxos.LeaderHeartbeat\x1a\x1e.paxos.LeaderHeartbeatResponseB6Z4github.com/luizgustavojunqueira/KV-Store-Paxos/paxosb\x06proto3"
 
 var (
 	file_proto_paxos_paxos_proto_rawDescOnce sync.Once
@@ -428,14 +696,18 @@ func file_proto_paxos_paxos_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_paxos_paxos_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_paxos_paxos_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_paxos_paxos_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_proto_paxos_paxos_proto_goTypes = []any{
-	(CommandType)(0),        // 0: paxos.CommandType
-	(*Command)(nil),         // 1: paxos.Command
-	(*PrepareRequest)(nil),  // 2: paxos.PrepareRequest
-	(*PrepareResponse)(nil), // 3: paxos.PrepareResponse
-	(*AcceptRequest)(nil),   // 4: paxos.AcceptRequest
-	(*AcceptResponse)(nil),  // 5: paxos.AcceptResponse
+	(CommandType)(0),                // 0: paxos.CommandType
+	(*Command)(nil),                 // 1: paxos.Command
+	(*PrepareRequest)(nil),          // 2: paxos.PrepareRequest
+	(*PrepareResponse)(nil),         // 3: paxos.PrepareResponse
+	(*AcceptRequest)(nil),           // 4: paxos.AcceptRequest
+	(*AcceptResponse)(nil),          // 5: paxos.AcceptResponse
+	(*ProposeLeaderRequest)(nil),    // 6: paxos.ProposeLeaderRequest
+	(*ProposeLeaderResponse)(nil),   // 7: paxos.ProposeLeaderResponse
+	(*LeaderHeartbeat)(nil),         // 8: paxos.LeaderHeartbeat
+	(*LeaderHeartbeatResponse)(nil), // 9: paxos.LeaderHeartbeatResponse
 }
 var file_proto_paxos_paxos_proto_depIdxs = []int32{
 	0, // 0: paxos.Command.type:type_name -> paxos.CommandType
@@ -443,10 +715,14 @@ var file_proto_paxos_paxos_proto_depIdxs = []int32{
 	1, // 2: paxos.AcceptRequest.command:type_name -> paxos.Command
 	2, // 3: paxos.Paxos.Prepare:input_type -> paxos.PrepareRequest
 	4, // 4: paxos.Paxos.Accept:input_type -> paxos.AcceptRequest
-	3, // 5: paxos.Paxos.Prepare:output_type -> paxos.PrepareResponse
-	5, // 6: paxos.Paxos.Accept:output_type -> paxos.AcceptResponse
-	5, // [5:7] is the sub-list for method output_type
-	3, // [3:5] is the sub-list for method input_type
+	6, // 5: paxos.Paxos.ProposeLeader:input_type -> paxos.ProposeLeaderRequest
+	8, // 6: paxos.Paxos.SendHeartbeat:input_type -> paxos.LeaderHeartbeat
+	3, // 7: paxos.Paxos.Prepare:output_type -> paxos.PrepareResponse
+	5, // 8: paxos.Paxos.Accept:output_type -> paxos.AcceptResponse
+	7, // 9: paxos.Paxos.ProposeLeader:output_type -> paxos.ProposeLeaderResponse
+	9, // 10: paxos.Paxos.SendHeartbeat:output_type -> paxos.LeaderHeartbeatResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -463,7 +739,7 @@ func file_proto_paxos_paxos_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_paxos_paxos_proto_rawDesc), len(file_proto_paxos_paxos_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   5,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
