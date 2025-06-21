@@ -275,6 +275,21 @@ func (ws *WebServer) handleListLogs(w http.ResponseWriter, r *http.Request) {
 	log.Println("Requisição recebida: /get_log")
 }
 
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*") // permite todas as origens
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	registryConn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -300,15 +315,17 @@ func main() {
 
 	webServer.updateNodesInfo()
 
-	http.HandleFunc("/", webServer.indexHandler)
-	http.HandleFunc("/set", webServer.handleSet)
-	http.HandleFunc("/delete", webServer.handleDelete)
-	http.HandleFunc("/get_store/{node_address}", webServer.handleGetStore)
-	http.HandleFunc("/get_log/{node_address}", webServer.handleListLogs)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", webServer.indexHandler)
+	mux.HandleFunc("/set", webServer.handleSet)
+	mux.HandleFunc("/delete", webServer.handleDelete)
+	mux.HandleFunc("/get_store/", webServer.handleGetStore)
+	mux.HandleFunc("/get_log/", webServer.handleListLogs)
+
+	handler := corsMiddleware(mux)
 
 	log.Println("Servidor web iniciado na porta 8080")
-
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", handler); err != nil {
 		log.Fatalf("Erro ao iniciar o servidor web: %v", err)
 	}
 }
