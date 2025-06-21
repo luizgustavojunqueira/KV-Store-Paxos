@@ -7,6 +7,9 @@
     margin-bottom: 1.25rem;
     border-radius: 15px;
 }
+.isleader{
+    background-color: rgb(241, 196, 217);
+}
 .no_conteudo{
     
     justify-content: center;

@@ -1,16 +1,15 @@
-import { useState } from 'react'
 import './item_card.css'
+import type { NodeInfo } from '../api/types';
 
-function Card_item() {
-  const [count, setCount] = useState(0)
+function Card_item({node}:{node:NodeInfo}) {
 
   return (
     <>
-    <div className='no_card'>
+    <div className={'no_card '+(node.is_leader?'isleader':'')}>
         <section className='no_conteudo'>
             <div className='no_properties'>
-                <h3>Nó teste</h3>
-                <p>IP: 128.990.345.089</p>
+                <h3>{node.name}</h3>
+                <p>{node.address}</p>
             
             </div>
 
