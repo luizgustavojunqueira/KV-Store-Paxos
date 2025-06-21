@@ -11,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/luizgustavojunqueira/KV-Store-Paxos/paxos/internal"
 	paxos "github.com/luizgustavojunqueira/KV-Store-Paxos/paxos/internal"
+	"github.com/luizgustavojunqueira/KV-Store-Paxos/proto/kvstore"
 	pb "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos"
 	rpb "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/registry"
 	"google.golang.org/grpc"
@@ -63,8 +65,8 @@ func main() {
 
 	// Registrar os serviços gRPC
 	pb.RegisterPaxosServer(s, paxosNode) // Registro dos métodos Prepare, Accept, ProposeLeader, SendHeartbeat
-	// Se você definiu um serviço KVStore em seu .proto e o implementou no paxosNode, registre-o aqui:
-	// pb.RegisterKVStoreServer(s, paxosNode)
+
+	kvstore.RegisterKVStoreServer(s, internal.NewKVStoreServer(paxosNode)) // Registro do KVStoreServer para operações de GET, SET, DELETE
 
 	log.Printf("Paxos Server ouvindo em %v\n", lis.Addr())
 

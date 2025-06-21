@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v6.31.1
-// source: proto/paxos/paxos.proto
+// source: paxos/paxos.proto
 
 package paxos
 
@@ -54,11 +54,11 @@ func (x CommandType) String() string {
 }
 
 func (CommandType) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_paxos_paxos_proto_enumTypes[0].Descriptor()
+	return file_paxos_paxos_proto_enumTypes[0].Descriptor()
 }
 
 func (CommandType) Type() protoreflect.EnumType {
-	return &file_proto_paxos_paxos_proto_enumTypes[0]
+	return &file_paxos_paxos_proto_enumTypes[0]
 }
 
 func (x CommandType) Number() protoreflect.EnumNumber {
@@ -67,7 +67,7 @@ func (x CommandType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CommandType.Descriptor instead.
 func (CommandType) EnumDescriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{0}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{0}
 }
 
 type Command struct {
@@ -82,7 +82,7 @@ type Command struct {
 
 func (x *Command) Reset() {
 	*x = Command{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[0]
+	mi := &file_paxos_paxos_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +94,7 @@ func (x *Command) String() string {
 func (*Command) ProtoMessage() {}
 
 func (x *Command) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[0]
+	mi := &file_paxos_paxos_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ func (x *Command) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Command.ProtoReflect.Descriptor instead.
 func (*Command) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{0}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Command) GetType() CommandType {
@@ -148,7 +148,7 @@ type PrepareRequest struct {
 
 func (x *PrepareRequest) Reset() {
 	*x = PrepareRequest{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[1]
+	mi := &file_paxos_paxos_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -160,7 +160,7 @@ func (x *PrepareRequest) String() string {
 func (*PrepareRequest) ProtoMessage() {}
 
 func (x *PrepareRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[1]
+	mi := &file_paxos_paxos_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -173,7 +173,7 @@ func (x *PrepareRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrepareRequest.ProtoReflect.Descriptor instead.
 func (*PrepareRequest) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{1}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PrepareRequest) GetProposalId() int64 {
@@ -203,7 +203,7 @@ type PrepareResponse struct {
 
 func (x *PrepareResponse) Reset() {
 	*x = PrepareResponse{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[2]
+	mi := &file_paxos_paxos_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -215,7 +215,7 @@ func (x *PrepareResponse) String() string {
 func (*PrepareResponse) ProtoMessage() {}
 
 func (x *PrepareResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[2]
+	mi := &file_paxos_paxos_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -228,7 +228,7 @@ func (x *PrepareResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrepareResponse.ProtoReflect.Descriptor instead.
 func (*PrepareResponse) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{2}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *PrepareResponse) GetSuccess() bool {
@@ -277,7 +277,7 @@ type AcceptRequest struct {
 
 func (x *AcceptRequest) Reset() {
 	*x = AcceptRequest{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[3]
+	mi := &file_paxos_paxos_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -289,7 +289,7 @@ func (x *AcceptRequest) String() string {
 func (*AcceptRequest) ProtoMessage() {}
 
 func (x *AcceptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[3]
+	mi := &file_paxos_paxos_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -302,7 +302,7 @@ func (x *AcceptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptRequest.ProtoReflect.Descriptor instead.
 func (*AcceptRequest) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{3}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *AcceptRequest) GetProposalId() int64 {
@@ -337,7 +337,7 @@ type AcceptResponse struct {
 
 func (x *AcceptResponse) Reset() {
 	*x = AcceptResponse{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[4]
+	mi := &file_paxos_paxos_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -349,7 +349,7 @@ func (x *AcceptResponse) String() string {
 func (*AcceptResponse) ProtoMessage() {}
 
 func (x *AcceptResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[4]
+	mi := &file_paxos_paxos_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -362,7 +362,7 @@ func (x *AcceptResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptResponse.ProtoReflect.Descriptor instead.
 func (*AcceptResponse) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{4}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AcceptResponse) GetSuccess() bool {
@@ -396,7 +396,7 @@ type ProposeLeaderRequest struct {
 
 func (x *ProposeLeaderRequest) Reset() {
 	*x = ProposeLeaderRequest{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[5]
+	mi := &file_paxos_paxos_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -408,7 +408,7 @@ func (x *ProposeLeaderRequest) String() string {
 func (*ProposeLeaderRequest) ProtoMessage() {}
 
 func (x *ProposeLeaderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[5]
+	mi := &file_paxos_paxos_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -421,7 +421,7 @@ func (x *ProposeLeaderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeLeaderRequest.ProtoReflect.Descriptor instead.
 func (*ProposeLeaderRequest) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{5}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ProposeLeaderRequest) GetProposalId() int64 {
@@ -451,7 +451,7 @@ type ProposeLeaderResponse struct {
 
 func (x *ProposeLeaderResponse) Reset() {
 	*x = ProposeLeaderResponse{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[6]
+	mi := &file_paxos_paxos_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -463,7 +463,7 @@ func (x *ProposeLeaderResponse) String() string {
 func (*ProposeLeaderResponse) ProtoMessage() {}
 
 func (x *ProposeLeaderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[6]
+	mi := &file_paxos_paxos_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -476,7 +476,7 @@ func (x *ProposeLeaderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeLeaderResponse.ProtoReflect.Descriptor instead.
 func (*ProposeLeaderResponse) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{6}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ProposeLeaderResponse) GetSuccess() bool {
@@ -525,7 +525,7 @@ type LeaderHeartbeat struct {
 
 func (x *LeaderHeartbeat) Reset() {
 	*x = LeaderHeartbeat{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[7]
+	mi := &file_paxos_paxos_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -537,7 +537,7 @@ func (x *LeaderHeartbeat) String() string {
 func (*LeaderHeartbeat) ProtoMessage() {}
 
 func (x *LeaderHeartbeat) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[7]
+	mi := &file_paxos_paxos_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -550,7 +550,7 @@ func (x *LeaderHeartbeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaderHeartbeat.ProtoReflect.Descriptor instead.
 func (*LeaderHeartbeat) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{7}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *LeaderHeartbeat) GetLeaderAddress() string {
@@ -585,7 +585,7 @@ type LeaderHeartbeatResponse struct {
 
 func (x *LeaderHeartbeatResponse) Reset() {
 	*x = LeaderHeartbeatResponse{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[8]
+	mi := &file_paxos_paxos_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -597,7 +597,7 @@ func (x *LeaderHeartbeatResponse) String() string {
 func (*LeaderHeartbeatResponse) ProtoMessage() {}
 
 func (x *LeaderHeartbeatResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[8]
+	mi := &file_paxos_paxos_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -610,7 +610,7 @@ func (x *LeaderHeartbeatResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LeaderHeartbeatResponse.ProtoReflect.Descriptor instead.
 func (*LeaderHeartbeatResponse) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{8}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *LeaderHeartbeatResponse) GetSuccess() bool {
@@ -643,7 +643,7 @@ type LearnRequest struct {
 
 func (x *LearnRequest) Reset() {
 	*x = LearnRequest{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[9]
+	mi := &file_paxos_paxos_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -655,7 +655,7 @@ func (x *LearnRequest) String() string {
 func (*LearnRequest) ProtoMessage() {}
 
 func (x *LearnRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[9]
+	mi := &file_paxos_paxos_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -668,7 +668,7 @@ func (x *LearnRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LearnRequest.ProtoReflect.Descriptor instead.
 func (*LearnRequest) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{9}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *LearnRequest) GetSlotId() int64 {
@@ -688,7 +688,7 @@ type LearnResponse struct {
 
 func (x *LearnResponse) Reset() {
 	*x = LearnResponse{}
-	mi := &file_proto_paxos_paxos_proto_msgTypes[10]
+	mi := &file_paxos_paxos_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -700,7 +700,7 @@ func (x *LearnResponse) String() string {
 func (*LearnResponse) ProtoMessage() {}
 
 func (x *LearnResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_paxos_paxos_proto_msgTypes[10]
+	mi := &file_paxos_paxos_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -713,7 +713,7 @@ func (x *LearnResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LearnResponse.ProtoReflect.Descriptor instead.
 func (*LearnResponse) Descriptor() ([]byte, []int) {
-	return file_proto_paxos_paxos_proto_rawDescGZIP(), []int{10}
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *LearnResponse) GetDecided() bool {
@@ -730,11 +730,115 @@ func (x *LearnResponse) GetCommand() *Command {
 	return nil
 }
 
-var File_proto_paxos_paxos_proto protoreflect.FileDescriptor
+type GetStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_proto_paxos_paxos_proto_rawDesc = "" +
+func (x *GetStatusRequest) Reset() {
+	*x = GetStatusRequest{}
+	mi := &file_paxos_paxos_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStatusRequest) ProtoMessage() {}
+
+func (x *GetStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_paxos_paxos_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetStatusRequest) Descriptor() ([]byte, []int) {
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{11}
+}
+
+type GetStatusResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	IsLeader         bool                   `protobuf:"varint,1,opt,name=isLeader,proto3" json:"isLeader,omitempty"`                 // Indica se o nó é o líder
+	LeaderAddress    string                 `protobuf:"bytes,2,opt,name=leaderAddress,proto3" json:"leaderAddress,omitempty"`        // Endereço do líder atual
+	LeaderProposalID int64                  `protobuf:"varint,3,opt,name=leaderProposalID,proto3" json:"leaderProposalID,omitempty"` // ID da proposta do líder atual
+	HighestSlotID    int64                  `protobuf:"varint,4,opt,name=highestSlotID,proto3" json:"highestSlotID,omitempty"`       // Slot mais alto conhecido pelo nó
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *GetStatusResponse) Reset() {
+	*x = GetStatusResponse{}
+	mi := &file_paxos_paxos_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStatusResponse) ProtoMessage() {}
+
+func (x *GetStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_paxos_paxos_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetStatusResponse) Descriptor() ([]byte, []int) {
+	return file_paxos_paxos_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetStatusResponse) GetIsLeader() bool {
+	if x != nil {
+		return x.IsLeader
+	}
+	return false
+}
+
+func (x *GetStatusResponse) GetLeaderAddress() string {
+	if x != nil {
+		return x.LeaderAddress
+	}
+	return ""
+}
+
+func (x *GetStatusResponse) GetLeaderProposalID() int64 {
+	if x != nil {
+		return x.LeaderProposalID
+	}
+	return 0
+}
+
+func (x *GetStatusResponse) GetHighestSlotID() int64 {
+	if x != nil {
+		return x.HighestSlotID
+	}
+	return 0
+}
+
+var File_paxos_paxos_proto protoreflect.FileDescriptor
+
+const file_paxos_paxos_proto_rawDesc = "" +
 	"\n" +
-	"\x17proto/paxos/paxos.proto\x12\x05paxos\"z\n" +
+	"\x11paxos/paxos.proto\x12\x05paxos\"z\n" +
 	"\aCommand\x12&\n" +
 	"\x04type\x18\x01 \x01(\x0e2\x12.paxos.CommandTypeR\x04type\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12\x14\n" +
@@ -782,34 +886,41 @@ const file_proto_paxos_paxos_proto_rawDesc = "" +
 	"\aslot_id\x18\x01 \x01(\x03R\x06slotId\"S\n" +
 	"\rLearnResponse\x12\x18\n" +
 	"\adecided\x18\x01 \x01(\bR\adecided\x12(\n" +
-	"\acommand\x18\x02 \x01(\v2\x0e.paxos.CommandR\acommand*/\n" +
+	"\acommand\x18\x02 \x01(\v2\x0e.paxos.CommandR\acommand\"\x12\n" +
+	"\x10GetStatusRequest\"\xa7\x01\n" +
+	"\x11GetStatusResponse\x12\x1a\n" +
+	"\bisLeader\x18\x01 \x01(\bR\bisLeader\x12$\n" +
+	"\rleaderAddress\x18\x02 \x01(\tR\rleaderAddress\x12*\n" +
+	"\x10leaderProposalID\x18\x03 \x01(\x03R\x10leaderProposalID\x12$\n" +
+	"\rhighestSlotID\x18\x04 \x01(\x03R\rhighestSlotID*/\n" +
 	"\vCommandType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\a\n" +
 	"\x03SET\x10\x01\x12\n" +
 	"\n" +
-	"\x06DELETE\x10\x022\xc1\x02\n" +
+	"\x06DELETE\x10\x022\x81\x03\n" +
 	"\x05Paxos\x128\n" +
 	"\aPrepare\x12\x15.paxos.PrepareRequest\x1a\x16.paxos.PrepareResponse\x125\n" +
 	"\x06Accept\x12\x14.paxos.AcceptRequest\x1a\x15.paxos.AcceptResponse\x12J\n" +
 	"\rProposeLeader\x12\x1b.paxos.ProposeLeaderRequest\x1a\x1c.paxos.ProposeLeaderResponse\x12G\n" +
 	"\rSendHeartbeat\x12\x16.paxos.LeaderHeartbeat\x1a\x1e.paxos.LeaderHeartbeatResponse\x122\n" +
-	"\x05Learn\x12\x13.paxos.LearnRequest\x1a\x14.paxos.LearnResponseB6Z4github.com/luizgustavojunqueira/KV-Store-Paxos/paxosb\x06proto3"
+	"\x05Learn\x12\x13.paxos.LearnRequest\x1a\x14.paxos.LearnResponse\x12>\n" +
+	"\tGetStatus\x12\x17.paxos.GetStatusRequest\x1a\x18.paxos.GetStatusResponseB<Z:github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxosb\x06proto3"
 
 var (
-	file_proto_paxos_paxos_proto_rawDescOnce sync.Once
-	file_proto_paxos_paxos_proto_rawDescData []byte
+	file_paxos_paxos_proto_rawDescOnce sync.Once
+	file_paxos_paxos_proto_rawDescData []byte
 )
 
-func file_proto_paxos_paxos_proto_rawDescGZIP() []byte {
-	file_proto_paxos_paxos_proto_rawDescOnce.Do(func() {
-		file_proto_paxos_paxos_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_paxos_paxos_proto_rawDesc), len(file_proto_paxos_paxos_proto_rawDesc)))
+func file_paxos_paxos_proto_rawDescGZIP() []byte {
+	file_paxos_paxos_proto_rawDescOnce.Do(func() {
+		file_paxos_paxos_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_paxos_paxos_proto_rawDesc), len(file_paxos_paxos_proto_rawDesc)))
 	})
-	return file_proto_paxos_paxos_proto_rawDescData
+	return file_paxos_paxos_proto_rawDescData
 }
 
-var file_proto_paxos_paxos_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_paxos_paxos_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
-var file_proto_paxos_paxos_proto_goTypes = []any{
+var file_paxos_paxos_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_paxos_paxos_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_paxos_paxos_proto_goTypes = []any{
 	(CommandType)(0),                // 0: paxos.CommandType
 	(*Command)(nil),                 // 1: paxos.Command
 	(*PrepareRequest)(nil),          // 2: paxos.PrepareRequest
@@ -822,8 +933,10 @@ var file_proto_paxos_paxos_proto_goTypes = []any{
 	(*LeaderHeartbeatResponse)(nil), // 9: paxos.LeaderHeartbeatResponse
 	(*LearnRequest)(nil),            // 10: paxos.LearnRequest
 	(*LearnResponse)(nil),           // 11: paxos.LearnResponse
+	(*GetStatusRequest)(nil),        // 12: paxos.GetStatusRequest
+	(*GetStatusResponse)(nil),       // 13: paxos.GetStatusResponse
 }
-var file_proto_paxos_paxos_proto_depIdxs = []int32{
+var file_paxos_paxos_proto_depIdxs = []int32{
 	0,  // 0: paxos.Command.type:type_name -> paxos.CommandType
 	1,  // 1: paxos.PrepareResponse.accepted_command:type_name -> paxos.Command
 	1,  // 2: paxos.AcceptRequest.command:type_name -> paxos.Command
@@ -833,39 +946,41 @@ var file_proto_paxos_paxos_proto_depIdxs = []int32{
 	6,  // 6: paxos.Paxos.ProposeLeader:input_type -> paxos.ProposeLeaderRequest
 	8,  // 7: paxos.Paxos.SendHeartbeat:input_type -> paxos.LeaderHeartbeat
 	10, // 8: paxos.Paxos.Learn:input_type -> paxos.LearnRequest
-	3,  // 9: paxos.Paxos.Prepare:output_type -> paxos.PrepareResponse
-	5,  // 10: paxos.Paxos.Accept:output_type -> paxos.AcceptResponse
-	7,  // 11: paxos.Paxos.ProposeLeader:output_type -> paxos.ProposeLeaderResponse
-	9,  // 12: paxos.Paxos.SendHeartbeat:output_type -> paxos.LeaderHeartbeatResponse
-	11, // 13: paxos.Paxos.Learn:output_type -> paxos.LearnResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
+	12, // 9: paxos.Paxos.GetStatus:input_type -> paxos.GetStatusRequest
+	3,  // 10: paxos.Paxos.Prepare:output_type -> paxos.PrepareResponse
+	5,  // 11: paxos.Paxos.Accept:output_type -> paxos.AcceptResponse
+	7,  // 12: paxos.Paxos.ProposeLeader:output_type -> paxos.ProposeLeaderResponse
+	9,  // 13: paxos.Paxos.SendHeartbeat:output_type -> paxos.LeaderHeartbeatResponse
+	11, // 14: paxos.Paxos.Learn:output_type -> paxos.LearnResponse
+	13, // 15: paxos.Paxos.GetStatus:output_type -> paxos.GetStatusResponse
+	10, // [10:16] is the sub-list for method output_type
+	4,  // [4:10] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_proto_paxos_paxos_proto_init() }
-func file_proto_paxos_paxos_proto_init() {
-	if File_proto_paxos_paxos_proto != nil {
+func init() { file_paxos_paxos_proto_init() }
+func file_paxos_paxos_proto_init() {
+	if File_paxos_paxos_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_paxos_paxos_proto_rawDesc), len(file_proto_paxos_paxos_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_paxos_paxos_proto_rawDesc), len(file_paxos_paxos_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_paxos_paxos_proto_goTypes,
-		DependencyIndexes: file_proto_paxos_paxos_proto_depIdxs,
-		EnumInfos:         file_proto_paxos_paxos_proto_enumTypes,
-		MessageInfos:      file_proto_paxos_paxos_proto_msgTypes,
+		GoTypes:           file_paxos_paxos_proto_goTypes,
+		DependencyIndexes: file_paxos_paxos_proto_depIdxs,
+		EnumInfos:         file_paxos_paxos_proto_enumTypes,
+		MessageInfos:      file_paxos_paxos_proto_msgTypes,
 	}.Build()
-	File_proto_paxos_paxos_proto = out.File
-	file_proto_paxos_paxos_proto_goTypes = nil
-	file_proto_paxos_paxos_proto_depIdxs = nil
+	File_paxos_paxos_proto = out.File
+	file_paxos_paxos_proto_goTypes = nil
+	file_paxos_paxos_proto_depIdxs = nil
 }

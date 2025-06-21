@@ -1,7 +1,7 @@
 syntax = "proto3";
 package paxos;
 
-option go_package = "github.com/luizgustavojunqueira/KV-Store-Paxos/paxos";
+option go_package = "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos";
 
 service Paxos{
   rpc Prepare(PrepareRequest) returns (PrepareResponse);
@@ -9,6 +9,7 @@ service Paxos{
   rpc ProposeLeader(ProposeLeaderRequest) returns (ProposeLeaderResponse);
   rpc SendHeartbeat(LeaderHeartbeat) returns (LeaderHeartbeatResponse);
   rpc Learn(LearnRequest) returns (LearnResponse);
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
 }
 
 enum CommandType{
@@ -84,3 +85,13 @@ message LearnResponse{
   Command command = 2; // Comando associado ao slot, se decidido
 }
 
+message GetStatusRequest {
+  // Este message pode ser vazio, pois não requer parâmetros
+}
+
+message GetStatusResponse {
+  bool isLeader = 1; // Indica se o nó é o líder
+  string leaderAddress = 2; // Endereço do líder atual
+  int64 leaderProposalID = 3; // ID da proposta do líder atual
+  int64 highestSlotID = 4; // Slot mais alto conhecido pelo nó
+}

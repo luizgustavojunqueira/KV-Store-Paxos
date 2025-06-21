@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"log"
 	"maps"
 	"sync"
@@ -88,4 +89,16 @@ func (s *PaxosServer) GetAllSlots() map[int64]*PaxosState {
 		}
 	}
 	return slotsCopy
+}
+
+func (s *PaxosServer) GetStatus(ctx context.Context, req *pb.GetStatusRequest) (*pb.GetStatusResponse, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return &pb.GetStatusResponse{
+		IsLeader:         s.isLeader,
+		LeaderProposalID: s.leaderProposalID,
+		HighestSlotID:    s.highestSlotID,
+		LeaderAddress:    s.currentLeader,
+	}, nil
 }

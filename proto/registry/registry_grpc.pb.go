@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.31.1
-// source: proto/registry/registry.proto
+// source: registry/registry.proto
 
 package registry
 
@@ -194,5 +194,5 @@ var Registry_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/registry/registry.proto",
+	Metadata: "registry/registry.proto",
 }
