@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"sort"
 
 	"github.com/luizgustavojunqueira/KV-Store-Paxos/proto/kvstore"
 	pb "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/kvstore"
@@ -142,10 +143,41 @@ func (s *KVStoreServer) ListLog(ctx context.Context, req *pb.ListRequest) (*pb.L
 				Type:       log.AcceptedCommand.Type,
 				Key:        log.AcceptedCommand.Key,
 				Value:      string(log.AcceptedCommand.Value),
-				ProposalId: log.AcceptedCommand.ProposalId,
+				ProposalId: log.AcceptedProposedID,
 			},
 		})
 	}
 
+	// sort the entries by SlotId
+	if len(response.Entries) > 0 {
+		sort.Slice(response.Entries, func(i, j int) bool {
+			return response.Entries[i].SlotId < response.Entries[j].SlotId
+		})
+	}
+
 	return response, nil
+}
+
+func (s *KVStoreServer) TryElectSelf(ctx context.Context, req *pb.TryElectRequest) (*pb.TryElectResponse, error) {
+	s.paxosNode.mu.Lock()
+	if s.paxosNode.isLeader {
+		return &pb.TryElectResponse{
+			Success:      false,
+			ErrorMessage: "Já sou o líder.",
+		}, nil
+	}
+	s.paxosNode.mu.Unlock()
+
+	success := s.paxosNode.LeaderElection()
+
+	if !success {
+		return &pb.TryElectResponse{
+			Success:      false,
+			ErrorMessage: "Falha ao tentar se eleger como líder.",
+		}, nil
+	}
+
+	return &pb.TryElectResponse{
+		Success: true,
+	}, nil
 }

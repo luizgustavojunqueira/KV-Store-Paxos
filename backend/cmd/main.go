@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 	"sync"
 	"time"
 
@@ -99,6 +100,13 @@ func (ws *WebServer) indexHandler(w http.ResponseWriter, r *http.Request) {
 		LeaderAddress: ws.leaderAddress,
 	}
 	ws.mu.Unlock()
+
+	// Sort nodes by node address for consistent display
+	if len(data.Nodes) > 0 {
+		sort.Slice(data.Nodes, func(i, j int) bool {
+			return data.Nodes[i].Address < data.Nodes[j].Address
+		})
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(data); err != nil {
@@ -275,6 +283,37 @@ func (ws *WebServer) handleListLogs(w http.ResponseWriter, r *http.Request) {
 	log.Println("Requisição recebida: /get_log")
 }
 
+func (ws *WebServer) handleTryElect(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	nodeAddress := r.PathValue("node_address")
+	conn, err := grpc.NewClient(nodeAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		http.Error(w, "Erro ao conectar ao líder", http.StatusInternalServerError)
+		log.Printf("Erro ao conectar ao líder: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	client := kvstore.NewKVStoreClient(conn)
+
+	resp, err := client.TryElectSelf(ctx, &kvstore.TryElectRequest{})
+	if err != nil {
+		http.Error(w, "Erro ao tentar eleição", http.StatusInternalServerError)
+		log.Printf("Erro ao tentar eleição: %v", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, "Erro ao codificar resposta JSON", http.StatusInternalServerError)
+		log.Printf("Erro ao codificar resposta JSON: %v", err)
+		return
+	}
+	log.Println("Requisição recebida: /try_elect")
+}
+
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*") // permite todas as origens
@@ -306,7 +345,7 @@ func main() {
 	}
 
 	go func() {
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(2 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
 			webServer.updateNodesInfo()
@@ -319,8 +358,9 @@ func main() {
 	mux.HandleFunc("/", webServer.indexHandler)
 	mux.HandleFunc("/set", webServer.handleSet)
 	mux.HandleFunc("/delete", webServer.handleDelete)
-	mux.HandleFunc("/get_store/", webServer.handleGetStore)
-	mux.HandleFunc("/get_log/", webServer.handleListLogs)
+	mux.HandleFunc("/get_store/{node_address}", webServer.handleGetStore)
+	mux.HandleFunc("/get_log/{node_address}", webServer.handleListLogs)
+	mux.HandleFunc("/try_elect/{node_address}", webServer.handleTryElect)
 
 	handler := corsMiddleware(mux)
 

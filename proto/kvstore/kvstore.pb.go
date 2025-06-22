@@ -638,6 +638,94 @@ func (x *Command) GetProposalId() int64 {
 	return 0
 }
 
+type TryElectRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TryElectRequest) Reset() {
+	*x = TryElectRequest{}
+	mi := &file_kvstore_kvstore_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TryElectRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TryElectRequest) ProtoMessage() {}
+
+func (x *TryElectRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_kvstore_kvstore_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TryElectRequest.ProtoReflect.Descriptor instead.
+func (*TryElectRequest) Descriptor() ([]byte, []int) {
+	return file_kvstore_kvstore_proto_rawDescGZIP(), []int{12}
+}
+
+type TryElectResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`                              // Indica se a eleição foi bem-sucedida
+	ErrorMessage  string                 `protobuf:"bytes,2,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"` // Mensagem de erro, se houver
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TryElectResponse) Reset() {
+	*x = TryElectResponse{}
+	mi := &file_kvstore_kvstore_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TryElectResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TryElectResponse) ProtoMessage() {}
+
+func (x *TryElectResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_kvstore_kvstore_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TryElectResponse.ProtoReflect.Descriptor instead.
+func (*TryElectResponse) Descriptor() ([]byte, []int) {
+	return file_kvstore_kvstore_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *TryElectResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *TryElectResponse) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
 var File_kvstore_kvstore_proto protoreflect.FileDescriptor
 
 const file_kvstore_kvstore_proto_rawDesc = "" +
@@ -680,13 +768,18 @@ const file_kvstore_kvstore_proto_rawDesc = "" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x03 \x01(\tR\x05value\x12\x1f\n" +
 	"\vproposal_id\x18\x04 \x01(\x03R\n" +
-	"proposalId2\x98\x02\n" +
+	"proposalId\"\x11\n" +
+	"\x0fTryElectRequest\"Q\n" +
+	"\x10TryElectResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage2\xdd\x02\n" +
 	"\aKVStore\x120\n" +
 	"\x03Get\x12\x13.kvstore.GetRequest\x1a\x14.kvstore.GetResponse\x120\n" +
 	"\x03Set\x12\x13.kvstore.SetRequest\x1a\x14.kvstore.SetResponse\x129\n" +
 	"\x06Delete\x12\x16.kvstore.DeleteRequest\x1a\x17.kvstore.DeleteResponse\x123\n" +
 	"\x04List\x12\x14.kvstore.ListRequest\x1a\x15.kvstore.ListResponse\x129\n" +
-	"\aListLog\x12\x14.kvstore.ListRequest\x1a\x18.kvstore.ListLogResponseB8Z6github.com/luizgustavojunqueira/KV-Store-Paxos/kvstoreb\x06proto3"
+	"\aListLog\x12\x14.kvstore.ListRequest\x1a\x18.kvstore.ListLogResponse\x12C\n" +
+	"\fTryElectSelf\x12\x18.kvstore.TryElectRequest\x1a\x19.kvstore.TryElectResponseB8Z6github.com/luizgustavojunqueira/KV-Store-Paxos/kvstoreb\x06proto3"
 
 var (
 	file_kvstore_kvstore_proto_rawDescOnce sync.Once
@@ -700,39 +793,43 @@ func file_kvstore_kvstore_proto_rawDescGZIP() []byte {
 	return file_kvstore_kvstore_proto_rawDescData
 }
 
-var file_kvstore_kvstore_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_kvstore_kvstore_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_kvstore_kvstore_proto_goTypes = []any{
-	(*GetRequest)(nil),      // 0: kvstore.GetRequest
-	(*GetResponse)(nil),     // 1: kvstore.GetResponse
-	(*SetRequest)(nil),      // 2: kvstore.SetRequest
-	(*SetResponse)(nil),     // 3: kvstore.SetResponse
-	(*DeleteRequest)(nil),   // 4: kvstore.DeleteRequest
-	(*DeleteResponse)(nil),  // 5: kvstore.DeleteResponse
-	(*ListRequest)(nil),     // 6: kvstore.ListRequest
-	(*ListResponse)(nil),    // 7: kvstore.ListResponse
-	(*KeyValuePair)(nil),    // 8: kvstore.KeyValuePair
-	(*ListLogResponse)(nil), // 9: kvstore.ListLogResponse
-	(*LogEntry)(nil),        // 10: kvstore.LogEntry
-	(*Command)(nil),         // 11: kvstore.Command
-	(paxos.CommandType)(0),  // 12: paxos.CommandType
+	(*GetRequest)(nil),       // 0: kvstore.GetRequest
+	(*GetResponse)(nil),      // 1: kvstore.GetResponse
+	(*SetRequest)(nil),       // 2: kvstore.SetRequest
+	(*SetResponse)(nil),      // 3: kvstore.SetResponse
+	(*DeleteRequest)(nil),    // 4: kvstore.DeleteRequest
+	(*DeleteResponse)(nil),   // 5: kvstore.DeleteResponse
+	(*ListRequest)(nil),      // 6: kvstore.ListRequest
+	(*ListResponse)(nil),     // 7: kvstore.ListResponse
+	(*KeyValuePair)(nil),     // 8: kvstore.KeyValuePair
+	(*ListLogResponse)(nil),  // 9: kvstore.ListLogResponse
+	(*LogEntry)(nil),         // 10: kvstore.LogEntry
+	(*Command)(nil),          // 11: kvstore.Command
+	(*TryElectRequest)(nil),  // 12: kvstore.TryElectRequest
+	(*TryElectResponse)(nil), // 13: kvstore.TryElectResponse
+	(paxos.CommandType)(0),   // 14: paxos.CommandType
 }
 var file_kvstore_kvstore_proto_depIdxs = []int32{
 	8,  // 0: kvstore.ListResponse.pairs:type_name -> kvstore.KeyValuePair
 	10, // 1: kvstore.ListLogResponse.entries:type_name -> kvstore.LogEntry
 	11, // 2: kvstore.LogEntry.command:type_name -> kvstore.Command
-	12, // 3: kvstore.Command.type:type_name -> paxos.CommandType
+	14, // 3: kvstore.Command.type:type_name -> paxos.CommandType
 	0,  // 4: kvstore.KVStore.Get:input_type -> kvstore.GetRequest
 	2,  // 5: kvstore.KVStore.Set:input_type -> kvstore.SetRequest
 	4,  // 6: kvstore.KVStore.Delete:input_type -> kvstore.DeleteRequest
 	6,  // 7: kvstore.KVStore.List:input_type -> kvstore.ListRequest
 	6,  // 8: kvstore.KVStore.ListLog:input_type -> kvstore.ListRequest
-	1,  // 9: kvstore.KVStore.Get:output_type -> kvstore.GetResponse
-	3,  // 10: kvstore.KVStore.Set:output_type -> kvstore.SetResponse
-	5,  // 11: kvstore.KVStore.Delete:output_type -> kvstore.DeleteResponse
-	7,  // 12: kvstore.KVStore.List:output_type -> kvstore.ListResponse
-	9,  // 13: kvstore.KVStore.ListLog:output_type -> kvstore.ListLogResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
+	12, // 9: kvstore.KVStore.TryElectSelf:input_type -> kvstore.TryElectRequest
+	1,  // 10: kvstore.KVStore.Get:output_type -> kvstore.GetResponse
+	3,  // 11: kvstore.KVStore.Set:output_type -> kvstore.SetResponse
+	5,  // 12: kvstore.KVStore.Delete:output_type -> kvstore.DeleteResponse
+	7,  // 13: kvstore.KVStore.List:output_type -> kvstore.ListResponse
+	9,  // 14: kvstore.KVStore.ListLog:output_type -> kvstore.ListLogResponse
+	13, // 15: kvstore.KVStore.TryElectSelf:output_type -> kvstore.TryElectResponse
+	10, // [10:16] is the sub-list for method output_type
+	4,  // [4:10] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -749,7 +846,7 @@ func file_kvstore_kvstore_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kvstore_kvstore_proto_rawDesc), len(file_kvstore_kvstore_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

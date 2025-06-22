@@ -41,7 +41,7 @@ func (r *InMemoryRepository) FindAll() ([]*model.Service, error) {
 	return services, nil
 }
 
-// Remove todos os serviços cujo LastSeen < agora - ttl
+// CleanupExpired remove todos os serviços cujo LastSeen < agora - ttl
 func (r *InMemoryRepository) CleanupExpired(ttl time.Duration) {
 	now := time.Now()
 	r.mu.Lock()

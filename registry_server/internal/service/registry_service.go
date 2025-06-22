@@ -50,10 +50,10 @@ func (s *RegistryService) ListAll() ([]*model.Service, error) {
 }
 
 func (s *RegistryService) StartCleanup() {
-	ticker := time.NewTicker(11 * time.Second) // Define o intervalo de limpeza
+	ticker := time.NewTicker(5 * time.Second) // Define o intervalo de limpeza
 	go func() {
 		for range ticker.C {
-			s.repo.CleanupExpired(30 * time.Second) // Limpa serviços expirados a cada 10 segundos
+			s.repo.CleanupExpired(5 * time.Second) // Limpa serviços expirados a cada 10 segundos
 		}
 	}()
 }

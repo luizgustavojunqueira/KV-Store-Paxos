@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	KVStore_Get_FullMethodName     = "/kvstore.KVStore/Get"
-	KVStore_Set_FullMethodName     = "/kvstore.KVStore/Set"
-	KVStore_Delete_FullMethodName  = "/kvstore.KVStore/Delete"
-	KVStore_List_FullMethodName    = "/kvstore.KVStore/List"
-	KVStore_ListLog_FullMethodName = "/kvstore.KVStore/ListLog"
+	KVStore_Get_FullMethodName          = "/kvstore.KVStore/Get"
+	KVStore_Set_FullMethodName          = "/kvstore.KVStore/Set"
+	KVStore_Delete_FullMethodName       = "/kvstore.KVStore/Delete"
+	KVStore_List_FullMethodName         = "/kvstore.KVStore/List"
+	KVStore_ListLog_FullMethodName      = "/kvstore.KVStore/ListLog"
+	KVStore_TryElectSelf_FullMethodName = "/kvstore.KVStore/TryElectSelf"
 )
 
 // KVStoreClient is the client API for KVStore service.
@@ -35,6 +36,7 @@ type KVStoreClient interface {
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
 	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
 	ListLog(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListLogResponse, error)
+	TryElectSelf(ctx context.Context, in *TryElectRequest, opts ...grpc.CallOption) (*TryElectResponse, error)
 }
 
 type kVStoreClient struct {
@@ -95,6 +97,16 @@ func (c *kVStoreClient) ListLog(ctx context.Context, in *ListRequest, opts ...gr
 	return out, nil
 }
 
+func (c *kVStoreClient) TryElectSelf(ctx context.Context, in *TryElectRequest, opts ...grpc.CallOption) (*TryElectResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TryElectResponse)
+	err := c.cc.Invoke(ctx, KVStore_TryElectSelf_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KVStoreServer is the server API for KVStore service.
 // All implementations must embed UnimplementedKVStoreServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type KVStoreServer interface {
 	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
 	List(context.Context, *ListRequest) (*ListResponse, error)
 	ListLog(context.Context, *ListRequest) (*ListLogResponse, error)
+	TryElectSelf(context.Context, *TryElectRequest) (*TryElectResponse, error)
 	mustEmbedUnimplementedKVStoreServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedKVStoreServer) List(context.Context, *ListRequest) (*ListResp
 }
 func (UnimplementedKVStoreServer) ListLog(context.Context, *ListRequest) (*ListLogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListLog not implemented")
+}
+func (UnimplementedKVStoreServer) TryElectSelf(context.Context, *TryElectRequest) (*TryElectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TryElectSelf not implemented")
 }
 func (UnimplementedKVStoreServer) mustEmbedUnimplementedKVStoreServer() {}
 func (UnimplementedKVStoreServer) testEmbeddedByValue()                 {}
@@ -240,6 +256,24 @@ func _KVStore_ListLog_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KVStore_TryElectSelf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TryElectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KVStoreServer).TryElectSelf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: KVStore_TryElectSelf_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KVStoreServer).TryElectSelf(ctx, req.(*TryElectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KVStore_ServiceDesc is the grpc.ServiceDesc for KVStore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var KVStore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListLog",
 			Handler:    _KVStore_ListLog_Handler,
+		},
+		{
+			MethodName: "TryElectSelf",
+			Handler:    _KVStore_TryElectSelf_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
