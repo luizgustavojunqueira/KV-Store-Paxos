@@ -1,3 +1,4 @@
+// Package server implements the gRPC server for the service registry
 package server
 
 import (
@@ -62,6 +63,6 @@ func (s *RegistryServer) Heartbeat(ctx context.Context, req *pb.HeartbeatRequest
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	log.Printf("Heartbeat received for service: %s at %s", req.Name, req.Address)
+	// log.Printf("Heartbeat received for service: %s at %s", req.Name, req.Address)
 	return &pb.HeartbeatResponse{Success: true}, nil
 }

@@ -11,11 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/luizgustavojunqueira/KV-Store-Paxos/paxos/internal"
 	paxos "github.com/luizgustavojunqueira/KV-Store-Paxos/paxos/internal"
-	"github.com/luizgustavojunqueira/KV-Store-Paxos/proto/kvstore"
-	pb "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos"
-	rpb "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/registry"
+	kvstorePB "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/kvstore"
+	paxosPB "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos"
+	registryPB "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/registry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -39,12 +38,12 @@ func main() {
 	}
 	defer conn.Close()
 
-	registryClient := rpb.NewRegistryClient(conn)
+	registryClient := registryPB.NewRegistryClient(conn)
 
 	log.Printf("Conectado ao Registry em %s", *registryAddr)
 
 	// Registrar o nó no Registry
-	_, err = registryClient.Register(context.Background(), &rpb.RegisterRequest{
+	_, err = registryClient.Register(context.Background(), &registryPB.RegisterRequest{
 		Name:    *name,
 		Address: *nodeAddress,
 	})
@@ -60,13 +59,13 @@ func main() {
 	}
 	s := grpc.NewServer()
 
-	// Criar a instância do PaxosServer (que agora gerencia todo o estado e lógica Paxos)
+	// Criar a instância do PaxosServer
 	paxosNode := paxos.NewPaxosServer(registryClient, *nodeAddress, *name)
 
 	// Registrar os serviços gRPC
-	pb.RegisterPaxosServer(s, paxosNode) // Registro dos métodos Prepare, Accept, ProposeLeader, SendHeartbeat
+	paxosPB.RegisterPaxosServer(s, paxosNode) // Registro dos métodos Prepare, Accept, ProposeLeader, SendHeartbeat
 
-	kvstore.RegisterKVStoreServer(s, internal.NewKVStoreServer(paxosNode)) // Registro do KVStoreServer para operações de GET, SET, DELETE
+	kvstorePB.RegisterKVStoreServer(s, paxos.NewKVStoreServer(paxosNode)) // Registro do KVStoreServer para operações de GET, SET, DELETE
 
 	log.Printf("Paxos Server ouvindo em %v\n", lis.Addr())
 
@@ -82,13 +81,13 @@ func main() {
 		ticker := time.NewTicker(2 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
-			_, err := registryClient.Heartbeat(context.Background(), &rpb.HeartbeatRequest{
+			_, err := registryClient.Heartbeat(context.Background(), &registryPB.HeartbeatRequest{
 				Name:    *name,
 				Address: *nodeAddress,
 			})
 			if err != nil {
 				log.Printf("Erro no heartbeat para o Registry por %s: %v. Tentando re-registrar...\n", *name, err)
-				_, err = registryClient.Register(context.Background(), &rpb.RegisterRequest{
+				_, err = registryClient.Register(context.Background(), &registryPB.RegisterRequest{
 					Name:    *name,
 					Address: *nodeAddress,
 				})
@@ -103,6 +102,7 @@ func main() {
 
 	log.Printf("Paxos Node '%s' iniciado com sucesso no endereço '%s'.\n", *name, *nodeAddress)
 
+	// Inicializa monitoramento de líder e heartbeat
 	paxosNode.Start()
 
 	// Se este nó for configurado para tentar ser o Proposer/Líder no início
@@ -129,16 +129,16 @@ func main() {
 		for {
 			fmt.Print("> ")
 			input, _ := reader.ReadString('\n')
-			input = strings.TrimSpace(input) // Remove espaços em branco e nova linha
+			input = strings.TrimSpace(input)
 
-			parts := strings.Fields(input) // Divide a string em palavras
+			parts := strings.Fields(input)
 
 			if len(parts) == 0 {
 				continue
 			}
 
 			commandType := strings.ToLower(parts[0])
-			var cmd *pb.Command
+			var cmd *paxosPB.Command
 			var success bool
 
 			switch commandType {
@@ -149,13 +149,13 @@ func main() {
 				}
 				key := parts[1]
 				value := []byte(strings.Join(parts[2:], " "))
-				cmd = &pb.Command{
-					Type:  pb.CommandType_SET,
+				cmd = &paxosPB.Command{
+					Type:  paxosPB.CommandType_SET,
 					Key:   key,
 					Value: value,
 				}
 				log.Printf("[CLI] Tentando SET key='%s' value='%s' (próximo slot)\n", key, string(value))
-				success = paxosNode.ProposeCommand(cmd) // Usar a função para o próximo slot livre
+				success = paxosNode.ProposeCommand(cmd) // Tenta propor o comando SET no próximo slot livre
 				if success {
 					fmt.Printf("SET para '%s' (%s) proposta com sucesso!\n", key, string(value))
 				} else {
@@ -168,12 +168,12 @@ func main() {
 					continue
 				}
 				key := parts[1]
-				cmd = &pb.Command{
-					Type: pb.CommandType_DELETE,
+				cmd = &paxosPB.Command{
+					Type: paxosPB.CommandType_DELETE,
 					Key:  key,
 				}
 				log.Printf("[CLI] Tentando DELETE key='%s' (próximo slot)\n", key)
-				success = paxosNode.ProposeCommand(cmd) // Usar a função para o próximo slot livre
+				success = paxosNode.ProposeCommand(cmd) // Tenta propor o comando DELETE no próximo slot livre
 				if success {
 					fmt.Printf("DELETE para '%s' proposta com sucesso!\n", key)
 				} else {
@@ -208,7 +208,7 @@ func main() {
 
 			case "exit":
 				fmt.Println("Saindo da CLI do líder.")
-				return // Encerra a goroutine principal, permitindo que o programa termine
+				return
 
 			default:
 				fmt.Println("Comando desconhecido. Veja 'Comandos:' acima para opções.")
@@ -217,7 +217,6 @@ func main() {
 
 	} else {
 		log.Println("[Main] Este nó está configurado como Acceptor/Learner.")
-		// Manter a goroutine principal viva
 		select {}
 	}
 }

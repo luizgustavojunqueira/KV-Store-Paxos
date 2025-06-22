@@ -1,7 +1,5 @@
 /*
-Package internal provides the core implementation of the Paxos distributed consensus algorithm.
-It includes the roles of Proposer, Acceptor, and the state management for a single instance of Paxos.
-This package is designed to be extended for Multi-Paxos to support a replicated log.
+Package internal implements the Paxos logic for all the roles in the Paxos algorithm.
 */
 package internal
 
@@ -10,26 +8,28 @@ import (
 	"fmt"
 	"log"
 
-	pb "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos"
+	paxosPB "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos"
 )
 
-func (s *PaxosServer) Prepare(ctx context.Context, req *pb.PrepareRequest) (*pb.PrepareResponse, error) {
+func (s *PaxosServer) Prepare(ctx context.Context, req *paxosPB.PrepareRequest) (*paxosPB.PrepareResponse, error) {
 	state := s.GetSlotState(req.SlotId)
 
 	log.Printf("[Acceptor] Slot %d: Recebido Prepare com proposal_id %d. Estado atual: promised=%d, accepted_n=%d\n",
 		req.SlotId, req.ProposalId, state.HighestPromisedID, state.AcceptedProposedID)
 
+	// Se a proposta é maior que a maior promessa já feita, aceitamos
 	if req.ProposalId > state.HighestPromisedID {
 		state.HighestPromisedID = req.ProposalId // Promessa feita
 
-		return &pb.PrepareResponse{
+		return &paxosPB.PrepareResponse{
 			Success:            true,
 			AcceptedProposalId: state.AcceptedProposedID,
 			AcceptedCommand:    state.AcceptedCommand,
 			CurrentProposalId:  state.HighestPromisedID,
 		}, nil
 	} else {
-		return &pb.PrepareResponse{
+		// Se a proposta é menor ou igual, rejeitamos
+		return &paxosPB.PrepareResponse{
 			Success: false,
 			ErrorMessage: fmt.Sprintf("Já prometi para uma proposta %d maior ou igual a %d para o slot %d",
 				state.HighestPromisedID, req.ProposalId, req.SlotId),
@@ -38,12 +38,13 @@ func (s *PaxosServer) Prepare(ctx context.Context, req *pb.PrepareRequest) (*pb.
 	}
 }
 
-func (s *PaxosServer) Accept(ctx context.Context, req *pb.AcceptRequest) (*pb.AcceptResponse, error) {
+func (s *PaxosServer) Accept(ctx context.Context, req *paxosPB.AcceptRequest) (*paxosPB.AcceptResponse, error) {
 	state := s.GetSlotState(req.SlotId) // Obter estado para o slot específico
 
 	log.Printf("[Acceptor] Slot %d: Recebido Accept com proposal_id %d e comando %+v. Estado atual: promised=%d, accepted_n=%d\n",
 		req.SlotId, req.ProposalId, req.Command, state.HighestPromisedID, state.AcceptedProposedID)
 
+	// Verifica se a proposta é maior ou igual à maior promessa já feita
 	if req.ProposalId >= state.HighestPromisedID {
 		state.HighestPromisedID = req.ProposalId
 		state.AcceptedProposedID = req.ProposalId
@@ -56,6 +57,7 @@ func (s *PaxosServer) Accept(ctx context.Context, req *pb.AcceptRequest) (*pb.Ac
 		s.ApplyCommand(req.Command) // Aplicar o comando no KV Store
 		s.mu.Unlock()
 
+		// Atualiza o highestSlotID se necessário
 		if req.SlotId > s.highestSlotID {
 			s.mu.Lock()
 			s.highestSlotID = req.SlotId
@@ -63,12 +65,13 @@ func (s *PaxosServer) Accept(ctx context.Context, req *pb.AcceptRequest) (*pb.Ac
 			log.Printf("[Acceptor] Atualizado highestSlotID para %d\n", s.highestSlotID)
 		}
 
-		return &pb.AcceptResponse{
+		return &paxosPB.AcceptResponse{
 			Success:           true,
 			CurrentProposalId: state.HighestPromisedID,
 		}, nil
 	} else {
-		return &pb.AcceptResponse{
+		// Se a proposta é menor que a maior promessa já feita, rejeitamos
+		return &paxosPB.AcceptResponse{
 			Success: false,
 			ErrorMessage: fmt.Sprintf("Já prometi para uma proposta %d maior ou igual a %d para o slot %d",
 				state.HighestPromisedID, req.ProposalId, req.SlotId),
@@ -77,20 +80,22 @@ func (s *PaxosServer) Accept(ctx context.Context, req *pb.AcceptRequest) (*pb.Ac
 	}
 }
 
-func (s *PaxosServer) Learn(ctx context.Context, req *pb.LearnRequest) (*pb.LearnResponse, error) {
+// Learn é chamado por um nó aprendiz para obter o valor decidido de um slot específico.
+func (s *PaxosServer) Learn(ctx context.Context, req *paxosPB.LearnRequest) (*paxosPB.LearnResponse, error) {
 	slotID := req.SlotId
 
 	state := s.GetSlotState(slotID)
 
 	if state == nil || state.AcceptedCommand == nil {
 		log.Printf("[Learner] Nó %s requisitou o valor do slot %d, mas não há valor decidido aqui.", "remoto", slotID)
-		return &pb.LearnResponse{Decided: false}, nil
+		return &paxosPB.LearnResponse{Decided: false}, nil
 	}
 
 	log.Printf("[Learner] Nó %s requisitou o valor do slot %d. Enviando comando: %v", "remoto", slotID, state.AcceptedCommand)
-	return &pb.LearnResponse{
+	// Envia o comando aceito para o aprendiz
+	return &paxosPB.LearnResponse{
 		Decided: true,
-		Command: &pb.Command{
+		Command: &paxosPB.Command{
 			Type:       state.AcceptedCommand.Type,
 			Key:        state.AcceptedCommand.Key,
 			Value:      state.AcceptedCommand.Value,

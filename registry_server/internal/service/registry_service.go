@@ -1,3 +1,4 @@
+// Package service provides the implementation of the service registry.
 package service
 
 import (

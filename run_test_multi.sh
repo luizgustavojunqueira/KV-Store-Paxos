@@ -45,8 +45,7 @@ sleep 2 # Dê um tempo para o registry iniciar
 # --- 2. Iniciar o Servidor HTTP/Frontend ---
 echo "Iniciando Servidor HTTP/Frontend em localhost:${WEB_SERVER_PORT}..."
 go run backend/cmd/main.go \
-    --registryAddr="${REGISTRY_ADDR}" \
-    --port="${WEB_SERVER_PORT}" &
+    --registryAddr="${REGISTRY_ADDR}" &
 WEB_SERVER_PID=$!
 echo "Servidor HTTP iniciado (PID: ${WEB_SERVER_PID})"
 sleep 2 # Dê um tempo para o servidor web iniciar e conectar ao registry

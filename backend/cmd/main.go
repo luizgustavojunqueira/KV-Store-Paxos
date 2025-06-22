@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
 	"sort"
@@ -114,7 +115,6 @@ func (ws *WebServer) indexHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Erro ao codificar resposta JSON: %v", err)
 		return
 	}
-	log.Println("Requisição recebida: /")
 }
 
 type Request struct {
@@ -141,8 +141,8 @@ func (ws *WebServer) handleSet(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := grpc.NewClient(req.NodeAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		http.Error(w, "Erro ao conectar ao líder", http.StatusInternalServerError)
-		log.Printf("Erro ao conectar ao líder: %v", err)
+		http.Error(w, "Erro ao conectar ao nó", http.StatusInternalServerError)
+		log.Printf("Erro ao conectar ao nó: %v", err)
 		return
 	}
 	defer conn.Close()
@@ -166,7 +166,6 @@ func (ws *WebServer) handleSet(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Erro ao codificar resposta JSON: %v", err)
 		return
 	}
-	log.Println("Requisição recebida: /set")
 }
 
 func (ws *WebServer) handleDelete(w http.ResponseWriter, r *http.Request) {
@@ -187,8 +186,8 @@ func (ws *WebServer) handleDelete(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := grpc.NewClient(req.NodeAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		http.Error(w, "Erro ao conectar ao líder", http.StatusInternalServerError)
-		log.Printf("Erro ao conectar ao líder: %v", err)
+		http.Error(w, "Erro ao conectar ao nó", http.StatusInternalServerError)
+		log.Printf("Erro ao conectar ao nó: %v", err)
 		return
 	}
 	defer conn.Close()
@@ -211,7 +210,6 @@ func (ws *WebServer) handleDelete(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Erro ao codificar resposta JSON: %v", err)
 		return
 	}
-	log.Println("Requisição recebida: /delete")
 }
 
 func (ws *WebServer) handleGetStore(w http.ResponseWriter, r *http.Request) {
@@ -226,8 +224,8 @@ func (ws *WebServer) handleGetStore(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	conn, err := grpc.NewClient(nodeAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		http.Error(w, "Erro ao conectar ao líder", http.StatusInternalServerError)
-		log.Printf("Erro ao conectar ao líder: %v", err)
+		http.Error(w, "Erro ao conectar ao nó", http.StatusInternalServerError)
+		log.Printf("Erro ao conectar ao nó: %v", err)
 		return
 	}
 	defer conn.Close()
@@ -245,7 +243,6 @@ func (ws *WebServer) handleGetStore(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Erro ao codificar resposta JSON: %v", err)
 		return
 	}
-	log.Println("Requisição recebida: /get_store")
 }
 
 func (ws *WebServer) handleListLogs(w http.ResponseWriter, r *http.Request) {
@@ -280,7 +277,6 @@ func (ws *WebServer) handleListLogs(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Erro ao codificar resposta JSON: %v", err)
 		return
 	}
-	log.Println("Requisição recebida: /get_log")
 }
 
 func (ws *WebServer) handleTryElect(w http.ResponseWriter, r *http.Request) {
@@ -329,8 +325,12 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+var registryAddr = flag.String("registryAddr", "localhost:50051", "Registry Server Address")
+
 func main() {
-	registryConn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	flag.Parse()
+
+	registryConn, err := grpc.NewClient(*registryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Erro ao conectar ao registry: %v", err)
 	}
@@ -351,8 +351,6 @@ func main() {
 			webServer.updateNodesInfo()
 		}
 	}()
-
-	webServer.updateNodesInfo()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", webServer.indexHandler)
