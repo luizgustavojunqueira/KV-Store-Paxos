@@ -9,15 +9,16 @@ LOG_DIR="paxos_logs"            # Diretório para armazenar os logs dos nós Pax
 # --- Argumentos da Linha de Comando ---
 # Verifica se o número de nós, o IP base dos nós e o endereço do Registry foram passados como argumento
 if [ -z "$3" ]; then
-    echo "Uso: $0 <numero_de_nos_paxos> <ip_base_para_nos> <registry_ip_porta>"
-    echo "Exemplo: $0 3 192.168.1.100 localhost:50051 (3 nós em 192.168.1.100, registry em localhost)"
-    echo "Exemplo: $0 3 localhost 192.168.1.50:50051 (3 nós em localhost, registry em 192.168.1.50)"
+    echo "Uso: $0 <numero_de_nos_paxos> <ip_base_para_nos> <registry_ip_porta> <node_name>"
+    echo "Exemplo: $0 3 192.168.1.100 localhost:50051 node (3 nós em 192.168.1.100, registry em localhost)"
+    echo "Exemplo: $0 3 localhost 192.168.1.50:50051 node (3 nós em localhost, registry em 192.168.1.50)"
     exit 1
 fi
 
 NUM_NODES=$1 # Número de nós Paxos a serem iniciados (todos como Acceptors/Learners)
 BASE_IP=$2   # Endereço IP base para os nós Paxos
 REGISTRY_ADDR=$3 # Endereço IP e porta do Registry Server
+BASE_NODE_NAME=${4:-"node"} # Nome base para os nós Paxos (padrão é "node")
 
 # --- Funções Auxiliares ---
 
@@ -55,7 +56,7 @@ PAXOS_PIDS=() # Array para armazenar os PIDs dos nós Paxos
 echo "Iniciando ${NUM_NODES} nós Paxos (Acceptors/Learners)..."
 
 for i in $(seq 1 $NUM_NODES); do
-    NODE_NAME="node-${i}"
+    NODE_NAME="${BASE_NODE_NAME}-${i}" # Nome do nó Paxos
     NODE_PORT=$((BASE_PAXOS_PORT + i - 1))
     # Combina o IP base com a porta para formar o endereço completo do nó
     NODE_ADDR="${BASE_IP}:${NODE_PORT}"

@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # --- Configurações ---
-REGISTRY_ADDR="localhost:50051"
+REGISTRY_ADDR="192.168.0.83:50051"
 WEB_SERVER_PORT=8080    # Porta para o servidor HTTP/Frontend (AGORA 8080)
 
 # --- Funções Auxiliares ---
