@@ -1,23 +1,12 @@
+
 #!/bin/bash
 
 # --- Configurações ---
 REGISTRY_ADDR="localhost:50051"
 WEB_SERVER_PORT=8080    # Porta para o servidor HTTP/Frontend (AGORA 8080)
-BASE_PAXOS_PORT=8081    # Porta inicial para os nós Paxos (AGORA 8081)
-
-# --- Argumentos da Linha de Comando ---
-# Verifica se o número de nós foi passado como argumento
-if [ -z "$1" ]; then
-    echo "Uso: $0 <numero_de_nos_paxos>"
-    echo "Exemplo: $0 3 (irá iniciar 3 nós Paxos, Registry e Web Server)"
-    exit 1
-fi
-
-NUM_NODES=$1 # Número de nós Paxos a serem iniciados (todos como Acceptors/Learners)
 
 # --- Funções Auxiliares ---
 
-# Função para matar todos os processos em segundo plano ao sair
 cleanup() {
     echo "Encerrando todos os processos em segundo plano..."
     # Mata todos os processos 'go run' de forma mais agressiva
@@ -33,7 +22,7 @@ trap cleanup SIGINT SIGTERM
 
 # --- Início da Execução ---
 
-echo "Iniciando cluster de Paxos..."
+echo "Iniciando registry e backend..."
 
 # --- 1. Iniciar o Registry Server ---
 echo "Iniciando Registry Server em ${REGISTRY_ADDR}..."
@@ -50,37 +39,15 @@ WEB_SERVER_PID=$!
 echo "Servidor HTTP iniciado (PID: ${WEB_SERVER_PID})"
 sleep 2 # Dê um tempo para o servidor web iniciar e conectar ao registry
 
-# --- 3. Iniciar os Nós Paxos (Acceptors/Learners) ---
-PAXOS_PIDS=() # Array para armazenar os PIDs dos nós Paxos
-
-echo "Iniciando ${NUM_NODES} nós Paxos (Acceptors/Learners)..."
-
-for i in $(seq 1 $NUM_NODES); do
-    NODE_NAME="node-${i}"
-    NODE_PORT=$((BASE_PAXOS_PORT + i - 1))
-    NODE_ADDR="localhost:${NODE_PORT}"
-
-    echo "  Iniciando ${NODE_NAME} em ${NODE_ADDR} (Acceptor/Learner)..."
-    go run paxos/cmd/main.go \
-        --registryAddr="${REGISTRY_ADDR}" \
-        --nodeName="${NODE_NAME}" \
-        --nodeAddr="${NODE_ADDR}" \
-        --isProposer=false &
-    
-    PAXOS_PIDS+=($!) # Adiciona o PID ao array
-done
-
-echo "Todos os nós Paxos iniciados."
-sleep 2 # Dê um tempo para todos os nós se registrarem e enviarem heartbeats
-
+echo "Registry e Backend iniciados com sucesso!"
 
 echo "------------------------------------------------------------------"
-echo "Cluster iniciado:"
+echo "Configuração do cluster:"
 echo "  Registry Server: ${REGISTRY_ADDR}"
 echo "  Servidor HTTP/Frontend: localhost:${WEB_SERVER_PORT}"
-echo "  Nós Paxos (${NUM_NODES}): ${BASE_PAXOS_PORT} em diante"
-echo ""
-echo "Pressione Ctrl+C para encerrar todos os processos."
+echo "------------------------------------------------------------------"
+echo "Para iniciar os nós Paxos, execute o script 'run_paxos_nodes.sh' com o número de nós desejado."
+echo "Exemplo: ./run_paxos_nodes.sh 3 (irá iniciar 3 nós Paxos como Acceptors/Learners)"
 echo "------------------------------------------------------------------"
 
 # Manter o script rodando indefinidamente, esperando por Ctrl+C
