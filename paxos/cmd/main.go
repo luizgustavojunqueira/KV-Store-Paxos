@@ -79,7 +79,7 @@ func main() {
 
 	// Iniciar o heartbeat para o Registry (para que o Registry saiba que o nó está vivo)
 	go func() {
-		ticker := time.NewTicker(5 * time.Second)
+		ticker := time.NewTicker(2 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
 			_, err := registryClient.Heartbeat(context.Background(), &rpb.HeartbeatRequest{
@@ -217,25 +217,6 @@ func main() {
 
 	} else {
 		log.Println("[Main] Este nó está configurado como Acceptor/Learner.")
-		// O select{} é necessário para manter a goroutine principal viva enquanto outras goroutines
-		// (como o servidor gRPC, heartbeats do registry e o monitor de líder) estão rodando.
-
-		go func() {
-			ticker := time.NewTicker(10 * time.Second)
-			defer ticker.Stop()
-			for range ticker.C {
-				kvStore := paxosNode.GetKVStore()
-				fmt.Println("Estado atual do KV Store:")
-				if len(kvStore) == 0 {
-					fmt.Println("  (Vazio)")
-				} else {
-					for k, v := range kvStore {
-						fmt.Printf("  %s: %s\n", k, string(v))
-					}
-				}
-			}
-		}()
-
 		// Manter a goroutine principal viva
 		select {}
 	}

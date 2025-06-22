@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"maps"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -14,31 +15,36 @@ import (
 
 type PaxosServer struct {
 	pb.UnimplementedPaxosServer
-	mu               sync.RWMutex
-	slots            map[int64]*PaxosState
-	kvStore          map[string][]byte
-	registryClient   rpb.RegistryClient
-	nodeAddress      string
-	currentLeader    string
-	isLeader         bool
-	highestSlotID    int64
-	leaderState      *LeaderPaxosState
-	lastHeartbeat    time.Time
-	leaderTimeout    time.Duration
-	leaderProposalID int64
-	nodeName         string
+	mu                sync.RWMutex
+	slots             map[int64]*PaxosState
+	kvStore           map[string][]byte
+	registryClient    rpb.RegistryClient
+	nodeAddress       string
+	currentLeader     string
+	isLeader          bool
+	highestSlotID     int64
+	leaderState       *LeaderPaxosState
+	lastHeartbeat     time.Time
+	leaderTimeout     time.Duration
+	leaderProposalID  int64
+	nodeName          string
+	heartBeatStopChan chan struct{}
+	electionSignal    chan struct{}
 }
 
 func NewPaxosServer(registryClient rpb.RegistryClient, nodeAddress, nodeName string) *PaxosServer {
+	randomTimeout := time.Duration(rand.Intn(11)+15) * time.Second
 	return &PaxosServer{
-		slots:          make(map[int64]*PaxosState),
-		kvStore:        make(map[string][]byte),
-		leaderState:    &LeaderPaxosState{},
-		leaderTimeout:  5 * time.Second, // Tempo de espera para considerar o líder inativo
-		registryClient: registryClient,
-		nodeAddress:    nodeAddress,
-		nodeName:       nodeName,
-		highestSlotID:  0,
+		slots:             make(map[int64]*PaxosState),
+		kvStore:           make(map[string][]byte),
+		leaderState:       &LeaderPaxosState{},
+		leaderTimeout:     randomTimeout,
+		registryClient:    registryClient,
+		nodeAddress:       nodeAddress,
+		nodeName:          nodeName,
+		highestSlotID:     0,
+		heartBeatStopChan: make(chan struct{}),
+		electionSignal:    make(chan struct{}, 1),
 	}
 }
 

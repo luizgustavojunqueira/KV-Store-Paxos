@@ -3,6 +3,7 @@ module github.com/luizgustavojunqueira/KV-Store-Paxos
 go 1.24.3
 
 require (
+	golang.org/x/sync v0.11.0
 	google.golang.org/grpc v1.72.2
 	google.golang.org/protobuf v1.36.6
 )

@@ -90,6 +90,11 @@ func (s *PaxosServer) Learn(ctx context.Context, req *pb.LearnRequest) (*pb.Lear
 	log.Printf("[Learner] Nó %s requisitou o valor do slot %d. Enviando comando: %v", "remoto", slotID, state.AcceptedCommand)
 	return &pb.LearnResponse{
 		Decided: true,
-		Command: state.AcceptedCommand,
+		Command: &pb.Command{
+			Type:       state.AcceptedCommand.Type,
+			Key:        state.AcceptedCommand.Key,
+			Value:      state.AcceptedCommand.Value,
+			ProposalId: state.AcceptedProposedID,
+		},
 	}, nil
 }
