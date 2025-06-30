@@ -8,13 +8,12 @@ import (
 	"sort"
 
 	kvstorePB "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/kvstore"
-	paxosPB "github.com/luizgustavojunqueira/KV-Store-Paxos/proto/kvstore"
 	"github.com/luizgustavojunqueira/KV-Store-Paxos/proto/paxos"
 )
 
 // KVStoreServer implementa o serviço gRPC para o KV Store usando o Paxos.
 type KVStoreServer struct {
-	paxosPB.UnimplementedKVStoreServer
+	kvstorePB.UnimplementedKVStoreServer
 	paxosNode *PaxosServer
 }
 
@@ -26,31 +25,31 @@ func NewKVStoreServer(paxosNode *PaxosServer) *KVStoreServer {
 }
 
 // Get implementa o método Get do KVStoreServer, que busca um valor associado a uma chave.
-func (s *KVStoreServer) Get(ctx context.Context, req *paxosPB.GetRequest) (*paxosPB.GetResponse, error) {
+func (s *KVStoreServer) Get(ctx context.Context, req *kvstorePB.GetRequest) (*kvstorePB.GetResponse, error) {
 	kvstore := s.paxosNode.GetKVStore()
 
 	value, found := kvstore[req.GetKey()]
 	if found {
-		return &paxosPB.GetResponse{
+		return &kvstorePB.GetResponse{
 			Found: true,
 			Value: string(value),
 		}, nil
 	}
 
-	return &paxosPB.GetResponse{
+	return &kvstorePB.GetResponse{
 		Found:        false,
 		ErrorMessage: "Key not found",
 	}, nil
 }
 
 // Set implementa o método Set do KVStoreServer, que define um valor para uma chave.
-func (s *KVStoreServer) Set(ctx context.Context, req *paxosPB.SetRequest) (*paxosPB.SetResponse, error) {
+func (s *KVStoreServer) Set(ctx context.Context, req *kvstorePB.SetRequest) (*kvstorePB.SetResponse, error) {
 	s.paxosNode.mu.Lock()
 	isLeader := s.paxosNode.isLeader
 	s.paxosNode.mu.Unlock()
 
 	if !isLeader {
-		return &paxosPB.SetResponse{
+		return &kvstorePB.SetResponse{
 			Success:      false,
 			ErrorMessage: "Não sou o líder. Não posso processar a requisição.",
 		}, nil
@@ -62,24 +61,24 @@ func (s *KVStoreServer) Set(ctx context.Context, req *paxosPB.SetRequest) (*paxo
 	success := s.paxosNode.ProposeCommand(cmd)
 
 	if !success {
-		return &paxosPB.SetResponse{
+		return &kvstorePB.SetResponse{
 			Success:      false,
 			ErrorMessage: "Falha ao propor comando.",
 		}, nil
 	}
-	return &paxosPB.SetResponse{
+	return &kvstorePB.SetResponse{
 		Success: true,
 	}, nil
 }
 
 // Delete implementa o método Delete do KVStoreServer, que remove uma chave do KV Store.
-func (s *KVStoreServer) Delete(ctx context.Context, req *paxosPB.DeleteRequest) (*paxosPB.DeleteResponse, error) {
+func (s *KVStoreServer) Delete(ctx context.Context, req *kvstorePB.DeleteRequest) (*kvstorePB.DeleteResponse, error) {
 	s.paxosNode.mu.Lock()
 	isLeader := s.paxosNode.isLeader
 	s.paxosNode.mu.Unlock()
 
 	if !isLeader {
-		return &paxosPB.DeleteResponse{
+		return &kvstorePB.DeleteResponse{
 			Success:      false,
 			ErrorMessage: "Não sou o líder. Não posso processar a requisição.",
 		}, nil
@@ -91,40 +90,40 @@ func (s *KVStoreServer) Delete(ctx context.Context, req *paxosPB.DeleteRequest) 
 	success := s.paxosNode.ProposeCommand(cmd)
 
 	if !success {
-		return &paxosPB.DeleteResponse{
+		return &kvstorePB.DeleteResponse{
 			Success:      false,
 			ErrorMessage: "Falha ao propor comando.",
 		}, nil
 	}
-	return &paxosPB.DeleteResponse{
+	return &kvstorePB.DeleteResponse{
 		Success: true,
 	}, nil
 }
 
 // List implementa o método List do KVStoreServer, que lista todos os pares chave-valor no KV Store.
-func (s *KVStoreServer) List(ctx context.Context, req *paxosPB.ListRequest) (*paxosPB.ListResponse, error) {
+func (s *KVStoreServer) List(ctx context.Context, req *kvstorePB.ListRequest) (*kvstorePB.ListResponse, error) {
 	s.paxosNode.mu.RLock()
 	defer s.paxosNode.mu.RUnlock()
 
 	// Obtém o KV Store do PaxosNode
 	kvstore := s.paxosNode.GetKVStore()
 
-	pairs := make([]*paxosPB.KeyValuePair, 0, len(kvstore))
+	pairs := make([]*kvstorePB.KeyValuePair, 0, len(kvstore))
 	for key, value := range kvstore {
-		pairs = append(pairs, &paxosPB.KeyValuePair{
+		pairs = append(pairs, &kvstorePB.KeyValuePair{
 			Key:   key,
 			Value: string(value),
 		})
 	}
 
 	if len(pairs) == 0 {
-		return &paxosPB.ListResponse{
+		return &kvstorePB.ListResponse{
 			Pairs:        nil,
 			ErrorMessage: "Nenhum par chave-valor encontrado.",
 		}, nil
 	}
 
-	response := &paxosPB.ListResponse{
+	response := &kvstorePB.ListResponse{
 		Pairs: pairs,
 	}
 
@@ -132,25 +131,25 @@ func (s *KVStoreServer) List(ctx context.Context, req *paxosPB.ListRequest) (*pa
 }
 
 // ListLog implementa o método ListLog do KVStoreServer, que lista todos os logs de slots.
-func (s *KVStoreServer) ListLog(ctx context.Context, req *paxosPB.ListRequest) (*paxosPB.ListLogResponse, error) {
+func (s *KVStoreServer) ListLog(ctx context.Context, req *kvstorePB.ListRequest) (*kvstorePB.ListLogResponse, error) {
 	s.paxosNode.mu.RLock()
 	defer s.paxosNode.mu.RUnlock()
 
 	logs := s.paxosNode.GetAllSlots()
 
 	if len(logs) == 0 {
-		return &paxosPB.ListLogResponse{
+		return &kvstorePB.ListLogResponse{
 			Entries:      nil,
 			ErrorMessage: "Nenhum log encontrado.",
 		}, nil
 	}
 
-	response := &paxosPB.ListLogResponse{
-		Entries: make([]*paxosPB.LogEntry, 0, len(logs)),
+	response := &kvstorePB.ListLogResponse{
+		Entries: make([]*kvstorePB.LogEntry, 0, len(logs)),
 	}
 
 	for id, log := range logs {
-		response.Entries = append(response.Entries, &paxosPB.LogEntry{
+		response.Entries = append(response.Entries, &kvstorePB.LogEntry{
 			SlotId: id,
 			Command: &kvstorePB.Command{
 				Type:       log.AcceptedCommand.Type,
@@ -172,10 +171,10 @@ func (s *KVStoreServer) ListLog(ctx context.Context, req *paxosPB.ListRequest) (
 }
 
 // TryElectSelf implementa o método TryElectSelf do KVStoreServer, que tenta eleger o nó atual como líder.
-func (s *KVStoreServer) TryElectSelf(ctx context.Context, req *paxosPB.TryElectRequest) (*paxosPB.TryElectResponse, error) {
+func (s *KVStoreServer) TryElectSelf(ctx context.Context, req *kvstorePB.TryElectRequest) (*kvstorePB.TryElectResponse, error) {
 	s.paxosNode.mu.Lock()
 	if s.paxosNode.isLeader {
-		return &paxosPB.TryElectResponse{
+		return &kvstorePB.TryElectResponse{
 			Success:      false,
 			ErrorMessage: "Já sou o líder.",
 		}, nil
@@ -186,13 +185,13 @@ func (s *KVStoreServer) TryElectSelf(ctx context.Context, req *paxosPB.TryElectR
 	success := s.paxosNode.LeaderElection()
 
 	if !success {
-		return &paxosPB.TryElectResponse{
+		return &kvstorePB.TryElectResponse{
 			Success:      false,
 			ErrorMessage: "Falha ao tentar se eleger como líder.",
 		}, nil
 	}
 
-	return &paxosPB.TryElectResponse{
+	return &kvstorePB.TryElectResponse{
 		Success: true,
 	}, nil
 }
