@@ -1,4 +1,5 @@
 .no_card {
+    margin-top: 2rem;
     text-align: left;
     justify-content: center;
     background-color: aliceblue;
@@ -106,4 +107,3 @@
     margin-right: 2rem;
     font-weight: bold;
 }
-

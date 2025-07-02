@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"maps"
 	"math/rand"
@@ -104,6 +105,8 @@ func (s *PaxosServer) GetAllSlots() map[int64]*PaxosState {
 func (s *PaxosServer) GetStatus(ctx context.Context, req *pb.GetStatusRequest) (*pb.GetStatusResponse, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	fmt.Printf("[PaxosServer] Status request received \n")
 
 	return &pb.GetStatusResponse{
 		IsLeader:         s.isLeader,
