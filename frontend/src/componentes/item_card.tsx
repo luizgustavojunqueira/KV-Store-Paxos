@@ -248,7 +248,7 @@ function Card_item({ node }: { node: NodeInfo }) {
                                 className="try_election"
                                 onClick={handleTryElect}
                             >
-                                Tentar Eleição
+                               TENTAR ELEIÇÂO
                             </button>
                         )}
                     </div>

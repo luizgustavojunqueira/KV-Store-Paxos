@@ -107,3 +107,14 @@
     margin-right: 2rem;
     font-weight: bold;
 }
+.try_election{
+    min-width: 80px;
+    min-height: 15px;
+    border-color: rgb(122, 56, 17);
+    border-radius: 5px;
+    background-color: rgb(247, 166, 128);
+    padding: 0.5rem;
+    margin-right: 2rem;
+    font-weight: bold;
+}
+
