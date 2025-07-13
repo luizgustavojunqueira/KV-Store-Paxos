@@ -30,9 +30,9 @@ Para rodar o sistema completo, siga estes passos:
 
 Este script inicia o serviço de registro de nós (Registry Server) e o servidor HTTP que serve o frontend.
 
-    ```bash
-    bash run_servers.sh <REGISTRY_IP>:50051
-    ```
+```bash
+bash run_servers.sh <REGISTRY_IP>:50051
+```
 
 - Substitua <IP_DO_REGISTRY> pelo endereço IP da máquina onde o Registry Server irá escutar. Para testes locais, use 127.0.0.1 ou localhost.
 - A porta padrão do Registry é 50051.
