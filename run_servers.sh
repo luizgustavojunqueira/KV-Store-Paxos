@@ -1,46 +1,43 @@
-
 #!/bin/bash
 
-# --- Configurações ---
-REGISTRY_ADDR="192.168.0.83:50051"
-WEB_SERVER_PORT=8080    # Porta para o servidor HTTP/Frontend (AGORA 8080)
-
-# --- Funções Auxiliares ---
+WEB_SERVER_PORT=8080
 
 cleanup() {
     echo "Encerrando todos os processos em segundo plano..."
-    # Mata todos os processos 'go run' de forma mais agressiva
-    pkill -SIGINT -f "go run" # Envia SIGINT primeiro
-    sleep 1 # Dá um tempo para SIGINT ser processado
-    pkill -SIGKILL -f "go run" # Se ainda houver, mata com SIGKILL
+    pkill -SIGKILL -f "go run backend/cmd/main.go" 
+    sleep 1 
+    pkill -SIGINT -f "go run registry_server/cmd/main.go" 
     echo "Limpeza concluída."
-    exit 0 # Sai do script após a limpeza
+    exit 0 
 }
 
-# Configura o trap para a função cleanup
 trap cleanup SIGINT SIGTERM
 
-# --- Início da Execução ---
+
+if [ -z "$1" ]; then
+    echo "Uso: $0 <REGISTRY_SERVER_ADDRESS>"
+    echo "Exemplo: $0 192.168.166.217:50051"
+    exit 1
+fi
+
+REGISTRY_ADDR="$1" 
 
 echo "Iniciando registry e backend..."
 
-# --- 1. Iniciar o Registry Server ---
 echo "Iniciando Registry Server em ${REGISTRY_ADDR}..."
-go run registry_server/cmd/main.go &
+go run registry_server/cmd/main.go --registryAddr="${REGISTRY_ADDR}" &
 REGISTRY_PID=$!
 echo "Registry Server iniciado (PID: ${REGISTRY_PID})"
-sleep 2 # Dê um tempo para o registry iniciar
+sleep 2 
 
-# --- 2. Iniciar o Servidor HTTP/Frontend ---
 echo "Iniciando Servidor HTTP/Frontend em localhost:${WEB_SERVER_PORT}..."
 go run backend/cmd/main.go \
     --registryAddr="${REGISTRY_ADDR}" &
 WEB_SERVER_PID=$!
 echo "Servidor HTTP iniciado (PID: ${WEB_SERVER_PID})"
-sleep 2 # Dê um tempo para o servidor web iniciar e conectar ao registry
+sleep 2 
 
 echo "Registry e Backend iniciados com sucesso!"
-
 echo "------------------------------------------------------------------"
 echo "Configuração do cluster:"
 echo "  Registry Server: ${REGISTRY_ADDR}"
@@ -50,5 +47,4 @@ echo "Para iniciar os nós Paxos, execute o script 'run_paxos_nodes.sh' com o n�
 echo "Exemplo: ./run_paxos_nodes.sh 3 (irá iniciar 3 nós Paxos como Acceptors/Learners)"
 echo "------------------------------------------------------------------"
 
-# Manter o script rodando indefinidamente, esperando por Ctrl+C
 wait
